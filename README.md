@@ -42,23 +42,24 @@ Semua info toko ada di **satu file** ini. Seluruh website (navbar, hero, lokasi,
 | `openingHours` | Jam buka. `label` untuk tampilan, `days` dalam bahasa Inggris (untuk Google), jam format `"HH:MM"` |
 | `social` | Link Instagram & TikTok |
 | `delivery` | Link GoFood / GrabFood / ShopeeFood. **Tombolnya otomatis muncul** di bagian Lokasi kalau link-nya diisi |
-| `priceRange` | Kisaran harga termurah–termahal |
+
+Kisaran harga untuk Google dihitung otomatis dari harga menu, jadi tidak perlu diisi.
 
 ---
 
 ## Mengubah menu → `src/data/menu.ts`
 
-Setiap menu ditulis seperti ini:
+Saat ini ada 3 menu: **Puding Karamel**, **Puding Karamel Topping Regal**, dan **Puding Karamel Topping Popcorn Karamel**. Setiap menu ditulis seperti ini:
 
 ```ts
 {
-  id: "puding-susu-telang",          // unik, huruf kecil & tanda "-" (dipakai juga untuk nama foto)
-  name: "Puding Susu Telang",
-  category: "puding-susu",           // salah satu id di menuCategories
-  description: "Signature kami! Dua lapis puding ...",
-  price: 15000,                      // tanpa titik: 15000 = Rp15.000
-  image: "/images/menu/puding-susu-telang.webp",
-  imageAlt: "Puding dua lapis biru dan putih dengan krim di atasnya", // opsional
+  id: "puding-karamel-regal",        // unik, huruf kecil & tanda "-"
+  name: "Puding Karamel Topping Regal",
+  category: "puding-karamel",        // salah satu id di menuCategories
+  description: "Puding susu lembut berlapis karamel dengan topping biskuit Regal renyah.",
+  price: 13000,                      // tanpa titik: 13000 = Rp13.000
+  image: "/images/menu/puding-karamel-regal-v2.jpg", // opsional, lihat "Belum punya foto?"
+  imageAlt: "Puding karamel dengan biskuit Regal di atasnya", // opsional
   badge: "Best Seller",              // opsional: "Best Seller" atau "Baru"
   available: false,                  // opsional: isi false jika sedang habis
 },
@@ -66,20 +67,44 @@ Setiap menu ditulis seperti ini:
 
 - **Menambah menu:** salin satu blok `{ … }`, tempel di dalam `menuItems`, lalu ubah isinya.
 - **Menghapus menu:** hapus bloknya.
-- **Kategori:** ubah daftar `menuCategories` di bagian atas file. Tombol filter kategori yang tidak punya menu otomatis disembunyikan.
-- Harga otomatis tampil sebagai `Rp 15.000`, dan tombol **Pesan Menu Ini** otomatis mengirim nama + harga ke WhatsApp.
+- **Belum punya foto?** Hapus baris `image`. Website otomatis menampilkan template **"Foto segera hadir"** yang rapi, jadi menu tetap bisa dijual dulu.
+- **Kategori:** ubah daftar `menuCategories` di bagian atas file. Tombol filter kategori baru muncul otomatis begitu ada lebih dari satu kategori yang punya menu.
+- Harga otomatis tampil sebagai `Rp 13.000`, dan tombol **Pesan Menu Ini** otomatis mengirim nama + harga ke WhatsApp.
+
+### Slot "Menu lainnya menyusul"
+
+Di bawah katalog ada bagian **Segera Hadir** berisi kartu dengan gambar kosong (template) + kartu ajakan follow Instagram. Isinya diatur di `upcomingMenus` (masih di `src/data/menu.ts`):
+
+```ts
+{ id: "menu-baru-1", name: "Varian Baru", teaser: "Sedang kami racik di dapur. Tunggu kejutannya!" },
+```
+
+- Sudah punya foto untuk menu yang akan datang? Tambahkan `image: "/images/menu/nama-file.jpg"`.
+- Menunya sudah resmi dijual? **Pindahkan** ke `menuItems` (lengkapi harga, kategori, deskripsi).
+- Tidak ingin menampilkan bagian ini? Kosongkan: `export const upcomingMenus: UpcomingMenu[] = [];`
 
 ---
 
-## Mengganti foto
+## Mengganti & menambah foto
 
-**Foto menu** ada di `public/images/menu/`.
+**Foto menu** ada di `public/images/menu/`. Saat ini: `puding-karamel-v2.jpg`, `puding-karamel-regal-v2.jpg`, `puding-karamel-popcorn-v2.jpg`.
 
-1. Siapkan foto **persegi (1:1)**, minimal **800 × 800 px**, format JPG atau WebP (usahakan < 300 KB).
-2. Paling mudah: beri nama **sama persis** dengan file contoh (mis. `puding-susu-telang.webp`) lalu timpa filenya.
-3. Jika nama/format berbeda (mis. `.jpg`), sesuaikan kolom `image` di `src/data/menu.ts`.
+1. Siapkan foto **persegi (1:1)**, idealnya **1024 × 1024 px**, format JPG atau WebP.
+2. Simpan ke `public/images/menu/` dengan nama huruf kecil tanpa spasi (mis. `puding-karamel-oreo.jpg`).
+3. Isi kolom `image` di `src/data/menu.ts`, mis. `image: "/images/menu/puding-karamel-oreo.jpg"`.
 
 Next.js otomatis memperkecil & mengompres foto sesuai layar pengunjung, jadi tidak perlu membuat banyak versi.
+
+### Membuat foto menu baru dengan Gemini (Nano Banana)
+
+Agar foto menu baru **senada** dengan 3 foto yang sudah ada (gelas kaca, piring keramik berbintik, sendok perak, taplak kotak-kotak biru-putih):
+
+1. Buka Gemini, **lampirkan salah satu foto yang sudah ada** (mis. `puding-karamel-v2.jpg`) sebagai contoh gaya.
+2. Tempel prompt ini, lalu ganti bagian `[TOPPING]`:
+
+   > Buat foto produk baru dengan gaya, sudut kamera, gelas, piring, sendok, taplak, dan pencahayaan yang **sama persis** seperti foto ini. Isinya: puding susu putih lembut dalam gelas kaca bening dengan lapisan saus karamel mengilap di atasnya, diberi topping **[TOPPING]**. Foto makanan realistis, rasio 1:1 (persegi), latar belakang blur, tanpa teks dan tanpa logo.
+
+3. Unduh hasilnya, simpan ke `public/images/menu/`, lalu isi `image` pada menu tersebut.
 
 **Ikon & gambar pratinjau link:**
 
@@ -98,6 +123,7 @@ Puding di bagian atas halaman adalah model 3D yang **bergoyang saat dicolek**, c
 - Model 3D hanya dimuat setelah halaman selesai tampil, dan **hanya di perangkat yang mampu**. Di perangkat lain (mode hemat data, memori kecil, tanpa kartu grafis, atau pengaturan "kurangi gerakan"), tampil ilustrasi puding yang sama dalam bentuk gambar.
 - Untuk mencoba: tambahkan `?pudding=3d` (paksa 3D) atau `?pudding=static` (paksa gambar) di belakang URL.
 - **Mengatur rasa goyangan:** ubah angka di `src/components/three/jiggle.config.ts` (kekakuan, redaman, kekuatan colekan, dll.). Saat `npm run dev`, nilainya bisa dicoba langsung dari console browser lewat `window.__JIGGLE`.
+- **Warna & tekstur:** warna lapisan susu, karamel, dan piring ada di `createMaterials` (`src/components/three/Pudding.tsx`). Tekstur (pori halus, riak karamel, bintik piring keramik) dibuat langsung di shader tanpa file gambar, lihat `src/components/three/surfaceDetail.ts`. Kalau warnanya diubah, samakan juga gradasi di `PuddingFallback.tsx` (versi gambar/cadangan).
 
 > Alat uji seperti PageSpeed/Lighthouse umumnya berjalan tanpa kartu grafis, sehingga yang dinilai adalah versi gambar. Ini memang perilaku yang benar untuk perangkat tanpa GPU.
 
@@ -148,7 +174,8 @@ Cari `TODO` di proyek (di VS Code: `Ctrl + Shift + F`) lalu lengkapi:
 - [ ] Alamat, koordinat, link & embed Google Maps (`site.ts`)
 - [ ] Jam buka (`site.ts`)
 - [ ] Instagram, TikTok, link GoFood/GrabFood/ShopeeFood (`site.ts`)
-- [ ] Nama, deskripsi, harga, dan foto menu asli (`menu.ts` + `public/images/menu/`)
+- [ ] Cek harga & deskripsi 3 menu karamel (`menu.ts`)
+- [ ] Atur slot "Menu lainnya menyusul" atau kosongkan jika tidak dipakai (`upcomingMenus` di `menu.ts`)
 - [ ] Cerita brand & keunggulan (`src/components/sections/About.tsx`)
 - [ ] Logo/ikon asli jika ada (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`)
 - [ ] Domain (`NEXT_PUBLIC_SITE_URL` di Vercel)

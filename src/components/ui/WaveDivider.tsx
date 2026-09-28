@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 
 /**
  * Gelombang lembut di akhir section. Warnanya ikut `currentColor`,
- * jadi isi dengan warna latar section berikutnya (mis. `text-primary-mist`).
+ * jadi isi dengan warna latar section berikutnya (mis. `text-milk`).
  */
 export function WaveDivider({ className }: { className?: string }) {
   return (

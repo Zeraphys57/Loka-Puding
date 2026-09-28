@@ -9,92 +9,71 @@ import { applyJiggle, createJiggleUniforms, type JiggleUniforms } from "./jiggle
 import { createPuddingGeometries, disposeGeometries } from "./puddingGeometry";
 import { PUDDING_TOP_Y } from "./puddingProfile";
 import { JiggleSimulation } from "./springs";
+import { applySurface, createSurfaceUniforms, type SurfaceUniforms } from "./surfaceDetail";
 
 /*
- * Material dibuat supaya berbagi program shader sebanyak mungkin (lebih sedikit kompilasi):
- * susu, krim, dan blueberry memakai fitur yang sama (clearcoat + sheen), beda nilai saja.
+ * Tekstur (pori, variasi warna, tonjolan mikro, bintik piring) dihitung prosedural di shader:
+ * tanpa unduhan gambar. Warna mengikuti foto produk: susu krem, karamel cokelat pekat mengilap.
  */
-function createMaterials(uniforms: JiggleUniforms) {
-  const jelly = applyJiggle(
+function createMaterials(uniforms: JiggleUniforms, surface: SurfaceUniforms) {
+  const caramel = applyJiggle(
     new MeshPhysicalMaterial({
-      color: new Color("#c27a29"),
-      roughness: 0.06,
-      transmission: 1,
-      thickness: 0.9,
-      ior: 1.34, // mendekati air/gelatin
-      attenuationColor: new Color("#8c4a10"),
-      attenuationDistance: 1.15, // makin tebal → makin pekat
-      clearcoat: 1,
-      clearcoatRoughness: 0.04,
+      color: new Color("#a55f26"),
+      roughness: 0.07, // licin mengilap seperti sirup gula yang mengeras
     }),
     uniforms,
+    { kind: "caramel", uniforms: surface },
   );
   const milk = applyJiggle(
     new MeshPhysicalMaterial({
-      color: new Color("#f7ead2"), // warm beige
-      roughness: 0.25, // more glossy/smooth like pudding
-      clearcoat: 0.8, // shinier surface
-      clearcoatRoughness: 0.15,
-      sheen: 0.8, // more velvety subsurface look at glancing angles
+      color: new Color("#f5e8cf"),
+      roughness: 0.4,
+      clearcoat: 1, // lapisan lembap tipis di permukaan puding
+      clearcoatRoughness: 0.07,
+      sheen: 0.5,
       sheenRoughness: 0.5,
-      sheenColor: new Color("#ffd199"), // warm peach/caramel sheen reflection
+      sheenColor: new Color("#ffe0b0"),
+      // Sedikit cahaya dari dalam: meniru susu yang tembus cahaya (bayangan tidak kusam)
+      emissive: new Color("#3a2408"),
+      emissiveIntensity: 0.24,
     }),
     uniforms,
+    { kind: "custard", uniforms: surface },
   );
-  const cream = applyJiggle(
+  const plate = applySurface(
     new MeshPhysicalMaterial({
-      color: new Color("#ffffff"),
-      roughness: 0.55,
-      clearcoat: 0.1,
-      clearcoatRoughness: 0.5,
-      sheen: 0.7,
-      sheenRoughness: 0.4,
-      sheenColor: new Color("#eef4ff"),
+      color: new Color("#f2e6d8"),
+      roughness: 0.45,
+      clearcoat: 0.35,
+      clearcoatRoughness: 0.2,
     }),
-    uniforms,
+    { kind: "ceramic", uniforms: surface },
   );
-  const berry = applyJiggle(
-    new MeshPhysicalMaterial({
-      color: new Color("#754316"),
-      roughness: 0.3,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.15,
-      sheen: 0.2,
-      sheenRoughness: 0.6,
-      sheenColor: new Color("#d6975a"),
-    }),
-    uniforms,
-  );
-  const plate = new MeshPhysicalMaterial({
-    color: new Color("#f2e6d8"),
-    roughness: 0.5,
-    clearcoat: 0.2,
-    clearcoatRoughness: 0.3,
-  });
   const plateRim = new MeshPhysicalMaterial({
     color: new Color("#b58b5e"),
     roughness: 0.5,
     clearcoat: 0.2,
     clearcoatRoughness: 0.3,
   });
-  return { jelly, milk, cream, berry, plate, plateRim };
+  return { caramel, milk, plate, plateRim };
 }
 
 type PuddingProps = {
-  /** Bertambah setiap kali tombol petunjuk ditekan → colekan di puncak */
+  /** Bertambah setiap kali tombol "Colek pudingnya" (keyboard) ditekan → colekan di puncak */
   pokeSignal: number;
-  /** Interaksi pertama (untuk menyembunyikan petunjuk) */
-  onInteract: () => void;
+  /** Perangkat kewalahan: tonjolan mikro dimatikan (warna & bintik tetap) */
+  lowQuality: boolean;
 };
 
 /** Bagian yang berubah setiap frame. Disimpan di ref: tidak memicu render ulang React. */
-type LiveState = { uniforms: JiggleUniforms; sim: JiggleSimulation };
+type LiveState = { uniforms: JiggleUniforms; surface: SurfaceUniforms; sim: JiggleSimulation };
 
-export function Pudding({ pokeSignal, onInteract }: PuddingProps) {
+export function Pudding({ pokeSignal, lowQuality }: PuddingProps) {
   // Aset GPU dibuat sekali; saat render hanya dibaca
   const assets = useMemo(() => {
     const uniforms = createJiggleUniforms(PUDDING_TOP_Y, JIGGLE.dent.radius);
-    return { uniforms, geometries: createPuddingGeometries(), materials: createMaterials(uniforms) };
+    const surface = createSurfaceUniforms();
+    return { uniforms, surface, geometries: createPuddingGeometries(), materials: createMaterials(uniforms, surface) };
   }, []);
   const { geometries, materials } = assets;
 
@@ -104,7 +83,7 @@ export function Pudding({ pokeSignal, onInteract }: PuddingProps) {
   const handledSignal = useRef(0);
 
   useEffect(() => {
-    live.current = { uniforms: assets.uniforms, sim: new JiggleSimulation(JIGGLE) };
+    live.current = { uniforms: assets.uniforms, surface: assets.surface, sim: new JiggleSimulation(JIGGLE) };
     if (process.env.NODE_ENV !== "production") {
       Object.assign(window, { __JIGGLE: JIGGLE, __PUDDING: live });
     }
@@ -114,6 +93,10 @@ export function Pudding({ pokeSignal, onInteract }: PuddingProps) {
       Object.values(assets.materials).forEach((material) => material.dispose());
     };
   }, [assets]);
+
+  useEffect(() => {
+    if (live.current) live.current.surface.uSurfaceBump.value = lowQuality ? 0 : 1;
+  }, [lowQuality]);
 
   const poke = useCallback(
     (point: Vector3, haptic: boolean) => {
@@ -133,12 +116,11 @@ export function Pudding({ pokeSignal, onInteract }: PuddingProps) {
       state.uniforms.uDentPos.value.copy(point);
 
       if (haptic) navigator.vibrate?.(8);
-      onInteract();
     },
-    [onInteract],
+    [],
   );
 
-  // Tombol "Coba colek pudingnya!" (juga untuk pengguna keyboard)
+  // Tombol "Colek pudingnya" untuk pengguna keyboard
   useEffect(() => {
     if (pokeSignal === handledSignal.current) return;
     handledSignal.current = pokeSignal;
@@ -227,9 +209,7 @@ export function Pudding({ pokeSignal, onInteract }: PuddingProps) {
         onPointerOut={handlePointerOut}
       >
         <mesh geometry={geometries.milk} material={materials.milk} dispose={null} />
-        <mesh geometry={geometries.jelly} material={materials.jelly} dispose={null} />
-        <mesh geometry={geometries.cream} material={materials.cream} dispose={null} />
-        <mesh geometry={geometries.berry} material={materials.berry} dispose={null} />
+        <mesh geometry={geometries.caramel} material={materials.caramel} dispose={null} />
       </group>
       <mesh geometry={geometries.plate} material={materials.plate} dispose={null} />
       <mesh geometry={geometries.plateRim} material={materials.plateRim} dispose={null} />

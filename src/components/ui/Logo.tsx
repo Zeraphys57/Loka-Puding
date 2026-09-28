@@ -1,59 +1,68 @@
 import { cn } from "@/lib/cn";
 
-/** Ikon puding dua lapis (biru-putih). Dipakai di navbar, footer, dan favicon. */
-export function PuddingMark({ className }: { className?: string }) {
+// Siluet puding (dasar lebar, puncak membulat) & lapisan karamel yang menetes, dalam kotak 48×48
+const BODY =
+  "M12 37.4C12.9 30 14.4 22.6 16 17.2 16.4 14.8 19.4 13.4 24 13.4s7.6 1.4 8 3.8c1.6 5.4 3.1 12.8 4 20.2-3.2 1.8-7.4 2.6-12 2.6s-8.8-.8-12-2.6z";
+const CARAMEL =
+  "M4 4h40v21H31.4c0 1.3-.3 4.9-1.4 4.9s-1.4-3.6-1.4-4.9H21.1c0 1-.3 3.4-1.2 3.4s-1.2-2.4-1.2-3.4H4z";
+
+type PuddingMarkProps = {
+  className?: string;
+  /** id unik per pemakaian (untuk clipPath SVG) */
+  id?: string;
+};
+
+/** Ikon puding dua lapis: susu di bawah, karamel meleleh di atas. Dipakai di navbar & footer. */
+export function PuddingMark({ className, id = "mark" }: PuddingMarkProps) {
+  const clip = `${id}-clip`;
   return (
     <svg viewBox="0 0 48 48" className={className} aria-hidden="true" focusable="false">
-      <ellipse cx="24" cy="41" rx="20" ry="4" fill="#dcebff" />
-      <path
-        d="M10 38.6c.6-4.2 1.2-7.6 2-10.1h24c.8 2.5 1.4 5.9 2 10.1-4.1 1.5-8.8 2.1-14 2.1s-9.9-.6-14-2.1z"
-        fill="#ffffff"
-        stroke="#1e4fd8"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M12 28.5c.7-5.6 1.5-9.5 2.5-12.3.8-2.4 4.2-3.7 9.5-3.7s8.7 1.3 9.5 3.7c1 2.8 1.8 6.7 2.5 12.3z"
-        fill="#1e4fd8"
-      />
-      <path
-        d="M17.3 17.2c.5-1.3 1.9-2 3.8-2.3"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity=".75"
-      />
-      <path
-        d="M18.5 12.8c0-2.3 2.5-3.6 5.5-3.6s5.5 1.3 5.5 3.6c-1.6.7-3.4 1-5.5 1s-3.9-.3-5.5-1z"
-        fill="#ffffff"
-        stroke="#1e4fd8"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <circle cx="24" cy="7" r="2.6" fill="#0b1b3f" />
+      <defs>
+        <clipPath id={clip}>
+          <path d={BODY} />
+        </clipPath>
+      </defs>
+      <ellipse cx="24" cy="40.6" rx="20.5" ry="4.4" className="fill-sand" />
+      <ellipse cx="24" cy="39.9" rx="15.5" ry="2.3" className="fill-custard" />
+      <path d={BODY} className="fill-milk-50" />
+      <g clipPath={`url(#${clip})`}>
+        <path d={CARAMEL} className="fill-caramel-600" />
+        <path d="M4 22.6h40" className="stroke-caramel-800/40" strokeWidth="2.4" />
+      </g>
+      <path d={BODY} fill="none" className="stroke-caramel-800" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M18.6 16.6c.9-1.1 2.3-1.7 4.2-1.9" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" opacity=".75" />
+      <path d="M15.4 29.5c-.4 2.2-.6 4.3-.7 6.2" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" opacity=".9" />
     </svg>
   );
 }
 
 /**
- * Logo teks "Loka Puding". Letakkan di dalam elemen ber-class `group/logo`
- * agar ikonnya bergoyang saat hover. `tone="light"` untuk latar biru.
+ * Logo teks "Loka Pudding". Letakkan di dalam elemen ber-class `group/logo`
+ * agar ikonnya bergoyang saat hover. `tone="light"` untuk latar gelap.
  */
-export function Logo({ className, tone = "default" }: { className?: string; tone?: "default" | "light" }) {
+export function Logo({
+  className,
+  tone = "default",
+  id,
+}: {
+  className?: string;
+  tone?: "default" | "light";
+  id?: string;
+}) {
   const light = tone === "light";
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <span className={cn("grid shrink-0 place-items-center", light && "size-11 rounded-full bg-white")}>
-        <PuddingMark className="size-9 origin-bottom group-hover/logo:animate-jiggle-tap" />
-      </span>
+      <PuddingMark id={id} className="size-9 shrink-0 origin-bottom group-hover/logo:animate-jiggle-tap" />
       <span
         className={cn(
-          "font-display text-[1.35rem] leading-none font-semibold tracking-tight whitespace-nowrap",
-          light ? "text-white" : "text-ink",
+          "font-display text-[1.4rem] leading-none font-bold tracking-tight whitespace-nowrap",
+          light ? "text-milk-50" : "text-espresso",
         )}
       >
-        Loka <span className={light ? "text-primary-soft" : "text-primary"}>Puding</span>
+        Loka{" "}
+        <span className={cn("font-wonky font-semibold italic", light ? "text-caramel-300" : "text-caramel-600")}>
+          Pudding
+        </span>
       </span>
     </span>
   );

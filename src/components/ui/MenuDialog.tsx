@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, type KeyboardEvent } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { EmptyImage } from "@/components/ui/EmptyImage";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { CloseIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { EASE, gsap } from "@/lib/gsap";
@@ -110,34 +112,38 @@ export function MenuDialog({ item, onClosed }: MenuDialogProps) {
         ref={backdropRef}
         aria-hidden="true"
         onClick={requestClose}
-        className="fixed inset-0 bg-ink/45 backdrop-blur-[3px]"
+        className="fixed inset-0 bg-espresso/50 backdrop-blur-[3px]"
       />
 
       <div className="pointer-events-none fixed inset-0 flex items-end justify-center sm:items-center sm:p-6">
         <div
           ref={panelRef}
           data-lenis-prevent
-          className="pointer-events-auto relative max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-[2rem] bg-cream shadow-pop sm:max-w-3xl sm:rounded-[2rem]"
+          className="pointer-events-auto relative max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-[2.25rem] bg-milk-50 shadow-pop sm:max-w-3xl sm:rounded-[2.25rem]"
         >
           <button
             type="button"
             onClick={requestClose}
             aria-label="Tutup detail menu"
-            className="absolute top-3 right-3 z-10 grid size-11 place-items-center rounded-full bg-white/90 text-ink shadow-soft ring-1 ring-line transition-[scale] duration-500 ease-jelly hover:scale-110 active:scale-95"
+            className="absolute top-3 right-3 z-10 grid size-11 place-items-center rounded-full bg-milk-50/90 text-espresso shadow-soft ring-1 ring-sand backdrop-blur transition-[scale] duration-500 ease-jelly hover:scale-110 active:scale-95"
           >
             <CloseIcon className="size-5" />
           </button>
 
           {item ? (
             <div className="grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-              <div className="relative aspect-[4/3] bg-primary-mist sm:aspect-auto sm:min-h-[26rem]">
-                <Image
-                  src={item.image}
-                  alt={item.imageAlt}
-                  fill
-                  sizes="(min-width: 640px) 360px, 100vw"
-                  className={item.available ? "object-cover" : "object-cover opacity-85 grayscale-[0.6]"}
-                />
+              <div className="relative aspect-[4/3] bg-custard sm:aspect-auto sm:min-h-[26rem]">
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.imageAlt}
+                    fill
+                    sizes="(min-width: 640px) 360px, 100vw"
+                    className={item.available ? "object-cover" : "object-cover opacity-85 grayscale-[0.6]"}
+                  />
+                ) : (
+                  <EmptyImage name={item.name} />
+                )}
                 {item.badge ? (
                   <Badge
                     tone={item.badge === "Best Seller" ? "accent" : "primary"}
@@ -149,18 +155,18 @@ export function MenuDialog({ item, onClosed }: MenuDialogProps) {
               </div>
 
               <div className="flex flex-col gap-4 p-6 sm:p-8">
-                <p className="text-xs font-bold tracking-wider text-primary uppercase">{item.categoryLabel}</p>
-                <h2 id="menu-dialog-title" className="pr-10 text-3xl leading-tight font-semibold text-ink">
+                <Eyebrow>{item.categoryLabel}</Eyebrow>
+                <h2 id="menu-dialog-title" className="pr-10 text-3xl leading-[1.05] font-bold tracking-[-0.02em] text-espresso sm:text-4xl">
                   {item.name}
                 </h2>
                 <p id="menu-dialog-description" className="leading-relaxed text-ink-muted">
                   {item.description}
                 </p>
-                <p className="font-display text-3xl font-semibold text-primary">{item.priceLabel}</p>
+                <p className="font-display text-3xl font-black tracking-tight text-caramel-700">{item.priceLabel}</p>
 
                 <div className="mt-auto flex flex-col gap-3 pt-2">
                   {item.available ? (
-                    <ButtonLink href={whatsappItemLink(item)} external variant="accent" size="lg">
+                    <ButtonLink href={whatsappItemLink(item)} external variant="primary" size="lg">
                       <WhatsAppIcon />
                       Pesan Menu Ini
                     </ButtonLink>
@@ -175,7 +181,7 @@ export function MenuDialog({ item, onClosed }: MenuDialogProps) {
                           href={whatsappOrderLink()}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-semibold text-primary underline underline-offset-2"
+                          className="font-semibold text-caramel-700 underline decoration-caramel-300 decoration-2 underline-offset-4"
                         >
                           WhatsApp
                         </a>

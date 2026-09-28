@@ -10,7 +10,7 @@
 
 export type ProfilePoint = readonly [radius: number, y: number];
 
-/** Lapisan susu (bawah): kaki sedikit melebar, pinggang landai, lalu tepi atas membulat. */
+/** Lapisan susu (bawah): kaki sedikit melebar, lalu meruncing ke tepi atas. */
 export const MILK_WALL: readonly ProfilePoint[] = [
   [0.97, 0],
   [1.035, 0.012],
@@ -27,35 +27,25 @@ export const MILK_WALL: readonly ProfilePoint[] = [
   [0.772, 1.06],
 ];
 
-/** Lapisan jeli (atas): tingkat yang sedikit lebih kecil, tepi membulat, puncak agak kubah. */
-export const JELLY_WALL: readonly ProfilePoint[] = [
-  [0.74, 1.06],
-  [0.72, 1.135],
-  [0.70, 1.185],
-  [0.67, 1.228],
-  [0.62, 1.26],
-  [0.55, 1.278],
-  [0.42, 1.288],
-  [0.22, 1.292],
-  [0, 1.293],
-];
-
-/** Krim kocok di puncak (bentuk "kuncup"; ulirnya ditambahkan di geometri 3D). */
-export const CREAM_WALL: readonly ProfilePoint[] = [
-  [0.3, 1.27],
-  [0.335, 1.3],
-  [0.33, 1.345],
-  [0.29, 1.405],
-  [0.215, 1.465],
-  [0.13, 1.515],
-  [0.055, 1.55],
-  [0, 1.562],
-];
-
 export const LAYER_SPLIT_Y = 1.06;
-export const PUDDING_TOP_Y = 1.293;
+export const PUDDING_TOP_Y = 1.265;
 export const PLATE_RADIUS = 1.58;
-export const BERRY = { radius: 0.105, y: 1.64, x: 0.012, z: 0.018 } as const;
+
+/**
+ * Lapisan karamel (atas): menyambung rata dengan dinding lapisan susu (sedikit lebih lebar
+ * agar sambungannya tertutup), tepi atas membulat, permukaan atas nyaris datar & mengilap.
+ */
+export const CARAMEL_WALL: readonly ProfilePoint[] = [
+  [0.774, LAYER_SPLIT_Y],
+  [0.753, 1.11],
+  [0.73, 1.158],
+  [0.7, 1.198],
+  [0.655, 1.228],
+  [0.595, 1.246],
+  [0.5, 1.257],
+  [0.3, 1.263],
+  [0, PUDDING_TOP_Y],
+];
 
 /**
  * Kamera yang sama untuk model 3D dan ilustrasi SVG (proyeksi perspektif identik),

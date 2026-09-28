@@ -1,7 +1,6 @@
 import {
-  BERRY,
   CAMERA,
-  JELLY_WALL,
+  CARAMEL_WALL,
   LAYER_SPLIT_Y,
   MILK_WALL,
   PLATE_RADIUS,
@@ -69,21 +68,44 @@ function silhouette(profile: readonly ProfilePoint[]): string {
   return `M${[...left, ...arc(topR, topY, -90, -270), ...rightSide, ...arc(bottomR, bottomY, 90, -90)].join("L")}Z`;
 }
 
-/** Garis alur cetakan (flute) di sisi depan, mengikuti lengkung dinding. */
-const flute = (wall: readonly ProfilePoint[], phiDeg: number) =>
+/** Garis kilau di sisi depan, mengikuti lengkung dinding pada sudut φ. */
+const meridian = (wall: readonly ProfilePoint[], phiDeg: number) =>
   `M${wall.map(([r, y]) => pt(project(r, y, phiDeg * DEG))).join("L")}`;
 
-/** Elips "menggembung" (untuk krim): lebar dari proyeksi cincin, tinggi dari ketebalan krim. */
-function puff(r: number, y: number, thickness: number) {
-  const [cx, cy] = projectPoint(0, y, 0);
-  const halfWidth = (project(r, y, 90 * DEG)[0] - project(r, y, -90 * DEG)[0]) / 2;
-  return { cx: round(cx), cy: round(cy), rx: round(halfWidth), ry: round((halfWidth / r) * thickness) };
+/** Pita di sisi depan antara dua ketinggian dinding (untuk rembesan karamel di puncak lapisan susu). */
+function frontBand(wall: readonly ProfilePoint[], fromY: number, toY: number): string {
+  const band = wall.filter(([, y]) => y >= fromY && y <= toY);
+  const [topR, topY] = band[band.length - 1];
+  const [bottomR, bottomY] = band[0];
+  return `M${[...arc(topR, topY, -90, 90), ...arc(bottomR, bottomY, 90, -90)].join("L")}Z`;
+}
+
+/** Bintik-bintik glasir keramik: posisi acak tapi tetap (seed), sama di setiap render. */
+function plateSpeckles(count: number) {
+  let seed = 20260928;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+  // Tinggi permukaan atas piring (mengikuti profil piring 3D)
+  const heightAt = (r: number) => (r < 1.22 ? 0 : r < 1.36 ? ((r - 1.22) / 0.14) * 0.02 : 0.02 + ((r - 1.36) / 0.19) * 0.05);
+  return Array.from({ length: count }, () => {
+    const r = 1.08 + random() * 0.46;
+    const phi = random() * 360;
+    const [x, y] = project(r, heightAt(r), phi * DEG);
+    return { x: round(x), y: round(y), r: round(0.5 + random() * random() * 1.4) };
+  });
 }
 
 const milkWall = sampleWall(MILK_WALL, 5);
-const jellyWall = sampleWall(JELLY_WALL, 5).filter(([r]) => r >= 0.62);
-const jellyRim = jellyWall[jellyWall.length - 1];
-const FLUTE_ANGLES = [-62, -32, -2, 28, 58];
+const caramelWall = sampleWall(CARAMEL_WALL, 5).filter(([r]) => r >= 0.64);
+const caramelRim = caramelWall[caramelWall.length - 1];
+
+// Batas vertikal (koordinat SVG) sisi depan lapisan karamel, untuk gradasi pita gelapnya
+const [, caramelBottomY] = project(CARAMEL_WALL[0][0], LAYER_SPLIT_Y, 0);
+const [, caramelRimY] = project(caramelRim[0], caramelRim[1], 0);
+const [, seepTopY] = project(MILK_WALL[MILK_WALL.length - 1][0], LAYER_SPLIT_Y, 0);
+const [, seepBottomY] = project(0.83, LAYER_SPLIT_Y - 0.1, 0);
 
 const paths = {
   floor: ring(PLATE_RADIUS * 1.05, -0.17),
@@ -93,25 +115,16 @@ const paths = {
   plateWell: ring(1.3, 0.02),
   contact: ring(1.18, 0.004),
   milk: silhouette(milkWall),
-  milkTop: ring(milkWall[milkWall.length - 1][0], LAYER_SPLIT_Y),
-  milkGlint: flute(milkWall.slice(16, -6), -62),
-  jelly: silhouette(jellyWall),
-  jellyTop: ring(jellyRim[0] - 0.02, jellyRim[1] + 0.012),
-  jellyFlutes: FLUTE_ANGLES.map((a) => flute(jellyWall.slice(1, -3), a)),
-  jellyGlint: flute(jellyWall.slice(3, -6), -58),
+  milkSeep: frontBand(milkWall, LAYER_SPLIT_Y - 0.1, LAYER_SPLIT_Y),
+  milkGlint: meridian(milkWall.slice(16, -6), -62),
+  caramel: silhouette(caramelWall),
+  caramelTop: ring(caramelRim[0], caramelRim[1]),
+  caramelGlint: meridian(caramelWall.slice(2, -1), -56),
+  caramelEdgeGlint: `M${arc(caramelRim[0] + 0.01, caramelRim[1] - 0.008, -150, -118, 8).join("L")}`,
 };
 
-/** Krim kocok: tingkat-tingkat bulat yang bertumpuk (bawah → atas). */
-const creamTiers = [
-  { y: 1.315, r: 0.34, thickness: 0.13 },
-  { y: 1.41, r: 0.255, thickness: 0.11 },
-  { y: 1.495, r: 0.165, thickness: 0.085 },
-  { y: 1.56, r: 0.075, thickness: 0.06 },
-].map(({ y, r, thickness }) => puff(r, y, thickness));
-
-const berry = puff(BERRY.radius, BERRY.y, BERRY.radius);
-const [berryX, berryY] = projectPoint(BERRY.x, BERRY.y, BERRY.z);
-const jellyTopBox = puff(jellyRim[0] - 0.02, jellyRim[1] + 0.012, 0.1);
+const speckles = plateSpeckles(46);
+const [topX, topY] = projectPoint(-0.28, caramelRim[1] + 0.02, -0.2);
 
 type PuddingFallbackProps = {
   className?: string;
@@ -135,57 +148,72 @@ export function PuddingFallback({ className, size }: PuddingFallbackProps) {
           <stop offset="1" stopColor="#8c6138" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="pf-plate" cx=".45" cy=".4" r=".75">
-          <stop offset="0" stopColor="#f7efe6" />
-          <stop offset="1" stopColor="#e3d0bc" />
+          <stop offset="0" stopColor="#fbf5ec" />
+          <stop offset="1" stopColor="#eadccb" />
         </radialGradient>
         <radialGradient id="pf-contact">
           <stop offset=".6" stopColor="#8c6138" stopOpacity=".22" />
           <stop offset="1" stopColor="#8c6138" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="pf-milk" x1="0" x2="1">
-          <stop offset="0" stopColor="#e3d0ad" />
-          <stop offset=".3" stopColor="#fdf6e6" />
-          <stop offset=".62" stopColor="#f7eace" />
-          <stop offset="1" stopColor="#d1b88e" />
+          <stop offset="0" stopColor="#ecd9b8" />
+          <stop offset=".24" stopColor="#f9eed8" />
+          <stop offset=".55" stopColor="#f2e3c7" />
+          <stop offset=".82" stopColor="#dcc7a3" />
+          <stop offset="1" stopColor="#c2ab85" />
         </linearGradient>
         <linearGradient id="pf-milk-depth" x1="0" y1="0" x2="0" y2="1">
           <stop offset=".45" stopColor="#a87432" stopOpacity="0" />
           <stop offset="1" stopColor="#a87432" stopOpacity=".15" />
         </linearGradient>
-        <linearGradient id="pf-jelly" x1="0" x2="1">
-          <stop offset="0" stopColor="#9e5c1a" />
-          <stop offset=".3" stopColor="#c77b28" />
-          <stop offset=".55" stopColor="#b56d1f" />
-          <stop offset="1" stopColor="#874a10" />
+        <linearGradient id="pf-milk-seep" gradientUnits="userSpaceOnUse" x1="0" y1={round(seepTopY)} x2="0" y2={round(seepBottomY)}>
+          <stop offset="0" stopColor="#b77a35" stopOpacity=".38" />
+          <stop offset="1" stopColor="#b77a35" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id="pf-jelly-depth" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffffff" stopOpacity=".1" />
-          <stop offset=".55" stopColor="#ffffff" stopOpacity="0" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity=".22" />
+        <linearGradient id="pf-caramel" x1="0" x2="1">
+          <stop offset="0" stopColor="#a4561a" />
+          <stop offset=".28" stopColor="#c06a1c" />
+          <stop offset=".6" stopColor="#9a5214" />
+          <stop offset="1" stopColor="#6c3707" />
         </linearGradient>
-        <radialGradient id="pf-jelly-top" cx=".42" cy=".38" r=".7">
-          <stop offset="0" stopColor="#e09c53" />
-          <stop offset=".6" stopColor="#c47d2b" />
-          <stop offset="1" stopColor="#a35d14" />
+        {/* Pita karamel lebih pekat di dasar lapisannya, makin terang ke atas (seperti foto produk) */}
+        <linearGradient
+          id="pf-caramel-depth"
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          y1={round(caramelBottomY)}
+          x2="0"
+          y2={round(caramelRimY)}
+        >
+          <stop offset="0" stopColor="#4a2308" stopOpacity=".55" />
+          <stop offset=".45" stopColor="#4a2308" stopOpacity=".18" />
+          <stop offset="1" stopColor="#4a2308" stopOpacity="0" />
+        </linearGradient>
+        <radialGradient id="pf-caramel-top" cx=".42" cy=".55" r=".75">
+          <stop offset="0" stopColor="#bd7441" />
+          <stop offset=".6" stopColor="#a75e2b" />
+          <stop offset="1" stopColor="#8a4a1e" />
         </radialGradient>
-        <radialGradient id="pf-cream" cx=".4" cy=".3" r=".8">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset=".6" stopColor="#f7faff" />
-          <stop offset="1" stopColor="#d2e0f8" />
-        </radialGradient>
-        <radialGradient id="pf-berry" cx=".35" cy=".3" r=".75">
-          <stop offset="0" stopColor="#b57335" />
-          <stop offset=".55" stopColor="#754316" />
-          <stop offset="1" stopColor="#4a2707" />
-        </radialGradient>
+        {/* Pantulan "jendela" di permukaan karamel yang licin */}
+        <linearGradient id="pf-caramel-sheen" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#f3d2bb" stopOpacity="0" />
+          <stop offset=".35" stopColor="#f3d2bb" stopOpacity=".55" />
+          <stop offset=".6" stopColor="#f3d2bb" stopOpacity=".15" />
+          <stop offset="1" stopColor="#f3d2bb" stopOpacity="0" />
+        </linearGradient>
       </defs>
 
-      {/* Bayangan lantai & piring */}
+      {/* Bayangan lantai & piring keramik berbintik */}
       <path d={paths.floor} fill="url(#pf-floor)" />
-      <path d={paths.plateEdge} fill="#d1bd9e" />
+      <path d={paths.plateEdge} fill="#dccab2" />
       <path d={paths.plateTop} fill="url(#pf-plate)" />
       <path d={paths.plateRim} fill="none" stroke="#b58b5e" strokeWidth="2.2" />
       <path d={paths.plateWell} fill="none" stroke="#e0cdb6" strokeWidth="2" />
+      <g fill="#7d5a3a" opacity=".55">
+        {speckles.map((s) => (
+          <circle key={`${s.x}-${s.y}`} cx={s.x} cy={s.y} r={s.r} />
+        ))}
+      </g>
       <path d={paths.contact} fill="url(#pf-contact)" />
 
       {/* Badan puding: satu grup agar bisa "dicolek" (squash) tanpa ikut menggoyang piring */}
@@ -193,32 +221,17 @@ export function PuddingFallback({ className, size }: PuddingFallbackProps) {
         {/* Lapisan susu */}
         <path d={paths.milk} fill="url(#pf-milk)" />
         <path d={paths.milk} fill="url(#pf-milk-depth)" />
-        <path d={paths.milkGlint} fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" opacity=".9" />
-        <path d={paths.milkTop} fill="#fffdf8" stroke="#e6e3dc" strokeWidth="1.2" />
+        <path d={paths.milkSeep} fill="url(#pf-milk-seep)" />
+        <path d={paths.milkGlint} fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" opacity=".85" />
 
         {/* Lapisan karamel */}
-        <path d={paths.jelly} fill="url(#pf-jelly)" />
-        <path d={paths.jelly} fill="url(#pf-jelly-depth)" />
-        {paths.jellyFlutes.map((d) => (
-          <path key={d} d={d} fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" opacity=".28" />
-        ))}
-        <path d={paths.jellyGlint} fill="none" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" opacity=".6" />
-        <path d={paths.jellyTop} fill="url(#pf-jelly-top)" />
-        <ellipse
-          cx={round(jellyTopBox.cx - jellyTopBox.rx * 0.38)}
-          cy={round(jellyTopBox.cy - jellyTopBox.ry * 0.3)}
-          rx={round(jellyTopBox.rx * 0.2)}
-          ry={round(jellyTopBox.ry * 0.35)}
-          fill="#ffffff"
-          opacity=".6"
-        />
-
-        {/* Krim & karamel */}
-        {creamTiers.map((tier) => (
-          <ellipse key={tier.cy} {...tier} fill="url(#pf-cream)" stroke="#d3e1f8" strokeWidth="1.2" />
-        ))}
-        <circle cx={round(berryX)} cy={round(berryY)} r={berry.rx} fill="url(#pf-berry)" />
-        <circle cx={round(berryX - berry.rx * 0.35)} cy={round(berryY - berry.rx * 0.35)} r="3" fill="#ffffff" opacity=".7" />
+        <path d={paths.caramel} fill="url(#pf-caramel)" />
+        <path d={paths.caramel} fill="url(#pf-caramel-depth)" />
+        <path d={paths.caramelTop} fill="url(#pf-caramel-top)" />
+        <path d={paths.caramelTop} fill="url(#pf-caramel-sheen)" />
+        <path d={paths.caramelGlint} fill="none" stroke="#fff4e6" strokeWidth="4.5" strokeLinecap="round" opacity=".7" />
+        <path d={paths.caramelEdgeGlint} fill="none" stroke="#fff4e6" strokeWidth="2.5" strokeLinecap="round" opacity=".75" />
+        <ellipse cx={round(topX)} cy={round(topY)} rx="18" ry="5" fill="#fff4e6" opacity=".45" />
       </g>
     </svg>
   );

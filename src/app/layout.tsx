@@ -1,13 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Plus_Jakarta_Sans } from "next/font/google";
+import { Caveat, Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { siteConfig } from "@/config/site";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
-const fredoka = Fredoka({
+/*
+ * Tiga keluarga font, semuanya self-hosted oleh next/font (tanpa request ke Google saat dibuka):
+ * - Fraunces: judul. Sumbu SOFT membuat sudut hurufnya membulat & kenyal seperti puding,
+ *   WONK memberi italic yang "miring nakal" untuk kata aksen (Lumer, Nagih, …).
+ * - Plus Jakarta Sans: teks. Dibuat foundry Indonesia (Tokotype) untuk identitas kota Jakarta.
+ * - Caveat: catatan tulisan tangan kecil, dipakai hemat.
+ */
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-fredoka",
+  style: ["normal", "italic"],
+  axes: ["SOFT", "WONK", "opsz"],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
@@ -17,7 +26,16 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const title = `${siteConfig.name} · Puding Homemade Lembut & Segar`;
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: "600",
+  variable: "--font-caveat",
+  display: "swap",
+  // Hanya untuk catatan dekoratif: tidak perlu menyaingi font utama saat halaman dimuat
+  preload: false,
+});
+
+const title = `${siteConfig.name} · Puding Karamel Homemade, Lembut & Lumer`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -46,13 +64,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fafcff",
+  themeColor: "#fbf6ee",
   colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" className={`${fredoka.variable} ${jakarta.variable}`}>
+    <html lang="id" className={`${fraunces.variable} ${jakarta.variable} ${caveat.variable}`}>
       <body className="font-sans">
         <a
           href="#konten"

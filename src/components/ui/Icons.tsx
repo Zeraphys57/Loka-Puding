@@ -117,6 +117,16 @@ export function SparkleIcon(props: IconProps) {
   );
 }
 
+export function ImageIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
+      <circle cx="9" cy="10" r="1.6" />
+      <path d="m20.5 15.5-4.3-4.3a1.3 1.3 0 0 0-1.8 0L6 19.5" />
+    </Icon>
+  );
+}
+
 export function TapIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -170,6 +180,57 @@ export function StoreIcon(props: IconProps) {
       <path d="M4.5 9.5a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0" />
       <path d="M6 11.8V20h12v-8.2" />
       <path d="M10 20v-4.5h4V20" />
+    </Icon>
+  );
+}
+
+/* Ikon navigasi & dekorasi */
+
+export function HomeIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 11 12 4.5l8 6.5" />
+      <path d="M6.5 9.5V19a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V9.5" />
+      <path d="M10 20v-5h4v5" />
+    </Icon>
+  );
+}
+
+export function HeartIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z" />
+    </Icon>
+  );
+}
+
+/** Puding di atas piring (ikon menu) */
+export function PuddingIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M7 16.5 8.2 8.8C8.5 7 10 6 12 6s3.5 1 3.8 2.8L17 16.5" />
+      <path d="M8 11.2c1.3.7 2.6 1 4 1s2.7-.3 4-1" />
+      <path d="M3.5 17.5c1.6 1.3 4.8 2 8.5 2s6.9-.7 8.5-2" />
+      <path d="M5.5 16.8h13" />
+    </Icon>
+  );
+}
+
+export function ArrowDownIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 5v14" />
+      <path d="m6 13 6 6 6-6" />
+    </Icon>
+  );
+}
+
+export function BookHeartIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 4.5h11a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z" />
+      <path d="M5 17.5A2.5 2.5 0 0 1 7.5 15h11" />
+      <path d="M11.8 12.2s-2.3-1.3-2.3-2.9a1.2 1.2 0 0 1 2.3-.5 1.2 1.2 0 0 1 2.3.5c0 1.6-2.3 2.9-2.3 2.9z" />
     </Icon>
   );
 }

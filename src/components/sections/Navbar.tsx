@@ -1,18 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ButtonLink } from "@/components/ui/Button";
-import { WhatsAppIcon } from "@/components/ui/Icons";
+import { useCallback, useEffect, useRef, useState, type ComponentType, type SVGProps } from "react";
+import { BookHeartIcon, HomeIcon, MapPinIcon, PuddingIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { Logo } from "@/components/ui/Logo";
 import { MOBILE_MENU_ID, MobileMenu } from "@/components/ui/MobileMenu";
 import { navLinks } from "@/config/site";
 import { cn } from "@/lib/cn";
 import { whatsappOrderLink } from "@/lib/whatsapp";
 
+type NavIcon = ComponentType<SVGProps<SVGSVGElement>>;
+
+const ICONS: Record<string, NavIcon> = {
+  "#home": HomeIcon,
+  "#tentang": BookHeartIcon,
+  "#menu": PuddingIcon,
+  "#lokasi": MapPinIcon,
+};
+
+type RailItem = { id: string; href: string; label: string; icon: NavIcon; external?: boolean };
+
+const RAIL: RailItem[] = [
+  ...navLinks.map((link) => ({ id: link.href.slice(1), href: link.href, label: link.label, icon: ICONS[link.href] })),
+  { id: "pesan", href: whatsappOrderLink(), label: "Pesan", icon: WhatsAppIcon, external: true },
+];
+
+// Lebar "tetesan" karamel yang keluar dari dinding (px)
+const BLOB_REST = 50;
+const BLOB_ACTIVE = 62;
+const BLOB_OPEN = 152;
+
 export function Navbar() {
-  const [activeId, setActiveId] = useState("beranda");
+  const [activeId, setActiveId] = useState("home");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [pastHero, setPastHero] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Scroll-spy: section yang melewati tengah layar menjadi link aktif
@@ -32,29 +54,59 @@ export function Navbar() {
     return () => observer.disconnect();
   }, []);
 
+  // Tombol "Pesan" melayang (mobile) muncul setelah hero; nav karamel & tombol itu minggir saat footer tersingkap.
+  // Footer menempel (sticky) di belakang konten, jadi yang diamati adalah penanda di akhir <main>.
+  useEffect(() => {
+    const hero = document.getElementById("home");
+    const sentinel = document.querySelector("[data-footer-sentinel]");
+    const heroObserver = new IntersectionObserver(([entry]) => {
+      setPastHero(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+    });
+    if (hero) heroObserver.observe(hero);
+
+    // Posisi dicek saat scroll (bukan IntersectionObserver): penanda setinggi 0 px bisa terlewat saat scroll cepat
+    let frame = 0;
+    const checkFooter = () => {
+      frame = 0;
+      if (sentinel) setFooterVisible(sentinel.getBoundingClientRect().top < window.innerHeight * 0.85);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(checkFooter);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      heroObserver.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const closeMenu = useCallback(({ restoreFocus }: { restoreFocus: boolean }) => {
     setMenuOpen(false);
     if (restoreFocus) menuButtonRef.current?.focus();
   }, []);
 
+  const blobWidth = (item: RailItem) =>
+    openId === item.id ? BLOB_OPEN : activeId === item.id ? BLOB_ACTIVE : BLOB_REST;
+
   return (
     <>
-      {/* LOGO: Fixed Top Left with Frosted Glass so it's visible on dark and light backgrounds */}
-      <div className="fixed top-6 left-6 sm:top-10 sm:left-10 z-50 pointer-events-auto">
-        <a href="#beranda" className="flex items-center justify-center p-3 bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl shadow-xl hover:scale-105 hover:bg-white transition-all" aria-label="Loka Puding, kembali ke beranda">
-          <Logo />
+      {/* Logo: pil kaca di kiri atas, terbaca di latar terang maupun gelap */}
+      <div className="fixed top-3 left-3 z-50 sm:top-5 sm:left-5 lg:top-6 lg:left-6">
+        <a
+          href="#home"
+          aria-label="Loka Pudding, kembali ke atas"
+          className="group/logo flex items-center rounded-full bg-milk-50/85 py-1.5 pr-4 pl-2 shadow-soft ring-1 ring-espresso/5 backdrop-blur-xl transition-[scale,background-color] duration-500 ease-jelly hover:scale-[1.03] hover:bg-milk-50"
+        >
+          <Logo id="mark-nav" />
         </a>
       </div>
 
-      {/* WHATSAPP: Fixed Bottom Left (Desktop) */}
-      <div className="hidden lg:block fixed bottom-10 left-10 z-50 pointer-events-auto">
-        <a href={whatsappOrderLink()} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-[#c27a29] text-white px-7 py-4 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-white hover:text-[#c27a29] transition-all hover:scale-105 shadow-[0_10px_40px_rgba(194,122,41,0.4)]">
-          <WhatsAppIcon className="w-5 h-5" /> Pesan Puding
-        </a>
-      </div>
-
-      {/* MOBILE MENU BUTTON: Fixed Top Right */}
-      <div className="fixed top-6 right-6 z-50 lg:hidden pointer-events-auto">
+      {/* Tombol menu (mobile & tablet) */}
+      <div className="fixed top-3 right-3 z-50 sm:top-5 sm:right-5 lg:hidden">
         <button
           ref={menuButtonRef}
           type="button"
@@ -62,7 +114,7 @@ export function Navbar() {
           aria-controls={MOBILE_MENU_ID}
           aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
           onClick={() => setMenuOpen((open) => !open)}
-          className="grid size-12 place-items-center rounded-full bg-white/90 backdrop-blur-md text-ink ring-1 ring-black/5 shadow-xl transition-[scale] duration-500 ease-jelly active:scale-90"
+          className="grid size-[3.25rem] place-items-center rounded-full bg-espresso text-milk-50 shadow-pop ring-1 ring-milk-50/10 transition-[scale] duration-500 ease-jelly active:scale-90"
         >
           <span aria-hidden="true" className="relative block h-3.5 w-5">
             <span className={cn("absolute top-0 left-0 h-0.5 w-full rounded-full bg-current transition-[translate,rotate] duration-500 ease-jelly", menuOpen && "translate-y-1.5 rotate-45")} />
@@ -72,83 +124,97 @@ export function Navbar() {
         </button>
       </div>
 
-      {/* DESKTOP GOOEY RIGHT NAV (CARAMEL DRIP) */}
-      <nav className="hidden lg:flex fixed right-0 top-0 h-screen w-64 z-40 pointer-events-none items-center justify-end overflow-visible">
-        
-        {/* Gooey Layer */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none" style={{ filter: "url(#goo)" }}>
-           {/* The solid dripping line on the extreme right */}
-           <div className="absolute right-[-20px] top-0 w-[40px] h-full bg-[#c27a29]" />
-           
-           <div className="w-full h-full flex flex-col justify-center items-end gap-6 pr-6">
-             {navLinks.map((link) => {
-               const id = link.href.slice(1);
-               const isActive = activeId === id;
-               const isHovered = hoveredId === id;
-               
-               let translateX = "translate-x-6"; // mostly hidden in wall
-               let width = "w-10";
-               
-               if (isHovered || isActive) {
-                 translateX = "translate-x-0"; // pull away just enough
-                 width = "w-36"; // shorter stretch! (was w-44)
-               } 
+      {/* Tombol "Pesan" melayang (mobile & tablet) */}
+      <a
+        href={whatsappOrderLink()}
+        target="_blank"
+        rel="noopener noreferrer"
+        tabIndex={pastHero && !footerVisible && !menuOpen ? undefined : -1}
+        aria-hidden={pastHero && !footerVisible && !menuOpen ? undefined : true}
+        aria-label="Pesan via WhatsApp"
+        className={cn(
+          "fixed right-4 bottom-4 z-40 flex size-14 items-center justify-center gap-2 rounded-full bg-caramel-600 font-bold text-white shadow-pop ring-4 ring-milk-50/70 transition-[translate,opacity] duration-500 ease-out-soft sm:w-auto sm:pr-6 sm:pl-5 lg:hidden [&_svg]:size-6",
+          pastHero && !footerVisible && !menuOpen ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-24 opacity-0",
+        )}
+      >
+        <WhatsAppIcon />
+        <span className="hidden sm:inline">Pesan</span>
+      </a>
 
-               return (
-                 <div 
-                   key={link.href} 
-                   className={cn(
-                     "h-12 bg-[#c27a29] rounded-full transition-all duration-[600ms] ease-[cubic-bezier(0.68,-0.55,0.265,1.55)]",
-                     translateX,
-                     width
-                   )}
-                 />
-               );
-             })}
-           </div>
+      {/* Desktop: dinding karamel di tepi kanan, tiap link = tetesan yang meleleh keluar saat disorot */}
+      <nav
+        aria-label="Navigasi utama"
+        inert={footerVisible}
+        className={cn(
+          "pointer-events-none fixed inset-y-0 right-0 z-40 hidden w-48 transition-transform duration-700 ease-out-soft lg:block",
+          footerVisible && "translate-x-[calc(100%+1rem)]",
+        )}
+      >
+        {/* Lapisan "goo": dinding + tetesan menyatu lewat filter SVG */}
+        <div aria-hidden="true" className="absolute inset-0" style={{ filter: "url(#goo)" }}>
+          <div className="absolute inset-y-0 right-0 w-3 bg-caramel-500" />
+          <div className="absolute top-1/2 right-0 flex -translate-y-1/2 flex-col items-end gap-4">
+            {RAIL.map((item) => (
+              <div
+                key={item.id}
+                className={cn(
+                  "h-12 rounded-full transition-[width,background-color] duration-[650ms] ease-[cubic-bezier(0.68,-0.55,0.265,1.55)]",
+                  activeId === item.id || openId === item.id ? "bg-caramel-600" : "bg-caramel-500",
+                )}
+                style={{ width: blobWidth(item) }}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Interactive / Text Layer (Above Gooey Layer) */}
-        <div className="absolute inset-0 w-full h-full flex flex-col justify-center items-end gap-6 pr-6 pointer-events-none">
-           {navLinks.map((link) => {
-             const id = link.href.slice(1);
-             const isActive = activeId === id;
-             const isHovered = hoveredId === id;
-
-             return (
-               <div key={link.href} className="relative flex items-center justify-end w-full h-12">
-                  {/* Fixed Text Label */}
-                  {/* mix-blend-difference makes it beautifully contrast with ANY background when not inside the caramel */}
-                  <span className={cn(
-                    "absolute right-10 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-[600ms] z-20 pointer-events-none whitespace-nowrap",
-                    (isHovered || isActive) 
-                      ? "text-white opacity-100 scale-100" 
-                      : "text-white mix-blend-difference opacity-50 scale-95"
-                  )}>
-                    {link.label}
+        {/* Lapisan interaktif (tidak kena filter) */}
+        <ul className="absolute top-1/2 right-0 flex -translate-y-1/2 flex-col items-end gap-4">
+          {RAIL.map((item) => {
+            const Icon = item.icon;
+            const open = openId === item.id;
+            const active = activeId === item.id;
+            return (
+              <li key={item.id} className="flex h-12 items-center">
+                <a
+                  href={item.href}
+                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : null)}
+                  aria-current={active ? "true" : undefined}
+                  onMouseEnter={() => setOpenId(item.id)}
+                  onMouseLeave={() => setOpenId(null)}
+                  onFocus={() => setOpenId(item.id)}
+                  onBlur={() => setOpenId(null)}
+                  className="pointer-events-auto flex h-12 items-center justify-end gap-2.5 rounded-full pr-[1.35rem] text-white outline-none focus-visible:shadow-[0_0_0_2px_var(--color-milk-50),0_0_0_4px_var(--color-espresso)]"
+                  style={{ width: blobWidth(item) }}
+                >
+                  {/* Selalu ada di DOM (hanya transparan) → tetap jadi nama link untuk pembaca layar */}
+                  <span
+                    className={cn(
+                      "text-[0.8rem] font-bold tracking-[0.14em] whitespace-nowrap uppercase transition-[opacity,translate] duration-300",
+                      open ? "translate-x-0 opacity-100 delay-150" : "pointer-events-none translate-x-3 opacity-0",
+                    )}
+                  >
+                    {item.label}
                   </span>
-
-                  {/* Invisible Hover Hitbox covering the text and blob */}
-                  <a 
-                    href={link.href}
-                    onMouseEnter={() => setHoveredId(id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    className="absolute right-[-24px] w-[200px] h-full pointer-events-auto z-30 outline-none"
-                    aria-label={link.label}
-                  />
-               </div>
-             );
-           })}
-        </div>
+                  <span className="relative grid size-5 shrink-0 place-items-center">
+                    <Icon className="size-5" />
+                    {active && !open ? (
+                      <span aria-hidden="true" className="absolute -bottom-2 size-1.5 rounded-full bg-caramel-200" />
+                    ) : null}
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
 
-      {/* SVG Defs for Gooey Effect */}
-      <svg style={{ visibility: "hidden", position: "absolute", width: 0, height: 0 }}>
+      {/* Filter "goo": blur lalu tajamkan tepi alfa → bentuk-bentuk yang berdekatan menyatu seperti lelehan */}
+      <svg aria-hidden="true" focusable="false" className="pointer-events-none absolute size-0">
         <defs>
           <filter id="goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
-            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo" />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo" />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
           </filter>
         </defs>
       </svg>

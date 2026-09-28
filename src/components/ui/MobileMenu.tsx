@@ -102,18 +102,18 @@ export function MobileMenu({ open, activeId, onClose }: MobileMenuProps) {
         data-overlay
         aria-hidden="true"
         onClick={() => onClose({ restoreFocus: true })}
-        className="absolute inset-0 bg-ink/30 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-espresso/40 backdrop-blur-[3px]"
       />
 
       <div
         id={MOBILE_MENU_ID}
         data-panel
         data-lenis-prevent
-        className="relative max-h-dvh overflow-y-auto rounded-b-[2rem] bg-cream pt-(--nav-h) shadow-pop"
+        className="relative max-h-dvh overflow-y-auto rounded-b-[2.25rem] bg-milk-50 pt-[4.75rem] shadow-pop sm:pt-24"
       >
         <nav aria-label="Navigasi utama">
-          <ul className="flex flex-col gap-1 px-4 pt-4 pb-2 sm:px-6">
-            {navLinks.map((link) => {
+          <ul className="flex flex-col gap-1 px-3 pt-2 pb-2 sm:px-5">
+            {navLinks.map((link, index) => {
               const active = activeId === link.href.slice(1);
               return (
                 <li key={link.href} data-menu-item>
@@ -122,12 +122,15 @@ export function MobileMenu({ open, activeId, onClose }: MobileMenuProps) {
                     aria-current={active ? "true" : undefined}
                     onClick={() => onClose({ restoreFocus: false })}
                     className={cn(
-                      "flex items-center justify-between rounded-2xl px-4 py-3.5 font-display text-3xl font-semibold transition-colors",
-                      active ? "bg-primary-soft text-primary" : "text-ink hover:bg-primary-mist",
+                      "flex items-center gap-4 rounded-3xl px-4 py-3 transition-colors",
+                      active ? "bg-caramel-100 text-caramel-700" : "text-espresso hover:bg-caramel-50",
                     )}
                   >
-                    {link.label}
-                    <ArrowRightIcon className="size-6 opacity-60" />
+                    <span className="w-6 font-display text-sm font-semibold text-caramel-600 italic">
+                      0{index + 1}
+                    </span>
+                    <span className="font-display text-[2rem] leading-tight font-bold">{link.label}</span>
+                    <ArrowRightIcon className="ml-auto size-6 opacity-50" />
                   </a>
                 </li>
               );
@@ -135,8 +138,8 @@ export function MobileMenu({ open, activeId, onClose }: MobileMenuProps) {
           </ul>
         </nav>
 
-        <div data-menu-item className="flex flex-col gap-5 px-8 pt-3 pb-8 sm:px-10">
-          <ButtonLink href={whatsappOrderLink()} external variant="accent" size="lg" className="w-full">
+        <div data-menu-item className="flex flex-col gap-5 px-6 pt-3 pb-8 sm:px-8">
+          <ButtonLink href={whatsappOrderLink()} external variant="primary" size="lg" className="w-full">
             <WhatsAppIcon />
             Pesan via WhatsApp
           </ButtonLink>
@@ -146,7 +149,7 @@ export function MobileMenu({ open, activeId, onClose }: MobileMenuProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Instagram ${siteConfig.social.instagram.handle}`}
-              className="grid size-11 place-items-center rounded-full ring-1 ring-line transition-colors hover:text-primary"
+              className="grid size-12 place-items-center rounded-full ring-1 ring-sand transition-colors hover:bg-caramel-50 hover:text-caramel-700"
             >
               <InstagramIcon className="size-5" />
             </a>
@@ -155,12 +158,14 @@ export function MobileMenu({ open, activeId, onClose }: MobileMenuProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`TikTok ${siteConfig.social.tiktok.handle}`}
-              className="grid size-11 place-items-center rounded-full ring-1 ring-line transition-colors hover:text-primary"
+              className="grid size-12 place-items-center rounded-full ring-1 ring-sand transition-colors hover:bg-caramel-50 hover:text-caramel-700"
             >
               <TikTokIcon className="size-5" />
             </a>
           </div>
         </div>
+        {/* Tepi bawah bermotif taplak kotak-kotak */}
+        <div aria-hidden="true" className="bg-gingham h-3 [--gingham-size:12px]" />
       </div>
     </div>
   );

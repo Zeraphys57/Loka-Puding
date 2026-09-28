@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { TapIcon } from "@/components/ui/Icons";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/cn";
 import { detect3DSupport } from "@/lib/device";
@@ -33,7 +32,6 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
   const [unsupported, setUnsupported] = useState(false);
   const [ready, setReady] = useState(false);
   const [inView, setInView] = useState(true);
-  const [poked, setPoked] = useState(false);
   const [pokeSignal, setPokeSignal] = useState(0);
 
   const show3D = capable && !unsupported && !reducedMotion;
@@ -70,35 +68,27 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
   }, []);
 
   const handleReady = useCallback(() => setReady(true), []);
-  const handleInteract = useCallback(() => setPoked(true), []);
   const handleUnsupported = useCallback(() => {
     setUnsupported(true);
     setReady(false);
   }, []);
 
   const pokeFallback = () => {
-    setPoked(true);
     if (reducedMotion) return;
     stageRef.current
       ?.querySelector<SVGGElement>("[data-jiggle]")
       ?.animate(POKE_KEYFRAMES, { duration: 950, easing: "cubic-bezier(0.3, 0.7, 0.4, 1)" });
   };
 
-  const handleHint = () => {
-    if (live3D) {
-      setPoked(true);
-      setPokeSignal((count) => count + 1);
-    } else {
-      pokeFallback();
-    }
+  // Untuk pengguna keyboard: tombol yang baru terlihat saat difokus (Tab), mencolek puncak puding
+  const pokeFromKeyboard = () => {
+    if (live3D) setPokeSignal((count) => count + 1);
+    else pokeFallback();
   };
 
   return (
-    <div
-      ref={stageRef}
-      className="relative mx-auto aspect-square w-[min(100%,23rem,46svh)] sm:w-[min(100%,28rem,52svh)] lg:w-full lg:max-w-[36rem]"
-    >
-      <div role="img" aria-label="Puding dua lapis biru-putih Loka Puding di atas piring" className="absolute inset-0">
+    <div ref={stageRef} className="relative aspect-square w-full">
+      <div role="img" aria-label="Puding karamel dua lapis Loka Pudding di atas piring keramik" className="absolute inset-0">
         <div
           className={cn(
             "absolute inset-0 transition-opacity duration-700 ease-out",
@@ -120,13 +110,19 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
               active={inView}
               pokeSignal={pokeSignal}
               onReady={handleReady}
-              onInteract={handleInteract}
               onUnsupported={handleUnsupported}
             />
           </div>
         ) : null}
       </div>
 
+      <button
+        type="button"
+        onClick={pokeFromKeyboard}
+        className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:bottom-2 focus-visible:left-1/2 focus-visible:z-30 focus-visible:-translate-x-1/2 focus-visible:rounded-full focus-visible:bg-espresso focus-visible:px-5 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-bold focus-visible:whitespace-nowrap focus-visible:text-milk-50"
+      >
+        Colek pudingnya
+      </button>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * Semua info bisnis Loka Puding ada di file ini.
+ * Semua info bisnis Loka Pudding ada di file ini.
  * Ganti setiap nilai yang diberi tanda `TODO` dengan data asli.
  * Tidak perlu mengubah komponen apa pun: seluruh website membaca dari sini.
  */
@@ -24,18 +24,17 @@ export type OpeningHours = {
 };
 
 export const siteConfig = {
-  name: "Loka Puding",
+  name: "Loka Pudding",
   // TODO: sesuaikan tagline & deskripsi jika perlu
   tagline: "Puding lembut, goyangnya bikin gemas.",
   description:
-    "Loka Puding: puding homemade yang lembut dari susu asli, buah segar, dan biru alami bunga telang. Dibuat fresh setiap hari, pesan langsung lewat WhatsApp.",
+    "Loka Pudding: puding karamel homemade yang lembut dengan saus karamel lumer. Tersedia topping biskuit Regal dan popcorn karamel. Dibuat fresh setiap hari, pesan langsung lewat WhatsApp.",
   keywords: [
     "puding",
+    "puding karamel",
+    "puding karamel regal",
+    "puding popcorn karamel",
     "puding homemade",
-    "puding susu",
-    "puding bunga telang",
-    "puding cokelat",
-    "hampers puding",
     "dessert",
     "UMKM",
   ],
@@ -47,9 +46,9 @@ export const siteConfig = {
     display: "+62 812-3456-7890",
     messages: {
       /** Pesan untuk tombol "Pesan Sekarang" / "Pesan via WhatsApp" */
-      general: "Halo Loka Puding! 👋 Saya mau pesan puding. Menu apa saja yang ready hari ini?",
+      general: "Halo Loka Pudding! 👋 Saya mau pesan pudding. Menu apa saja yang ready hari ini?",
       /** Pesan untuk tombol "Pesan Menu Ini". {item} dan {price} diisi otomatis */
-      item: "Halo Loka Puding! 👋 Saya mau pesan *{item}* ({price}). Apakah masih tersedia?",
+      item: "Halo Loka Pudding! 👋 Saya mau pesan *{item}* ({price}). Apakah masih tersedia?",
     },
   },
 
@@ -114,15 +113,13 @@ export const siteConfig = {
     grabfood: "", // TODO: link GrabFood
     shopeefood: "", // TODO: link ShopeeFood
   },
-
-  // TODO: sesuaikan dengan harga termurah – termahal di menu
-  priceRange: "Rp12.000 – Rp120.000",
+  // Kisaran harga untuk Google dihitung otomatis dari data/menu.ts
 } as const;
 
 export type SiteConfig = typeof siteConfig;
 
 export const navLinks = [
-  { href: "#beranda", label: "Beranda" },
+  { href: "#home", label: "Home" },
   { href: "#tentang", label: "Tentang" },
   { href: "#menu", label: "Menu" },
   { href: "#lokasi", label: "Lokasi" },

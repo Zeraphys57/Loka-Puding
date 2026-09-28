@@ -1,195 +1,157 @@
 import { PuddingFallback } from "@/components/three/PuddingFallback";
 import { PuddingStage } from "@/components/three/PuddingStage";
 import { ButtonLink } from "@/components/ui/Button";
-import { Container } from "@/components/ui/Container";
-import { ArrowRightIcon, SparkleIcon, WhatsAppIcon } from "@/components/ui/Icons";
-import { WaveDivider } from "@/components/ui/WaveDivider";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { HandNote } from "@/components/ui/HandNote";
+import { ArrowDownIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { whatsappOrderLink } from "@/lib/whatsapp";
-import { Playfair_Display } from "next/font/google";
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
+/*
+ * Hero editorial: "LEMBUT Lumer — [puding 3D] — BIKIN Nagih".
+ * Teks besar hanya visual (aria-hidden); judul untuk pembaca layar & mesin pencari ada di <h1> tersembunyi.
+ * Ukuran puding & huruf mengikuti tinggi layar (svh), jadi tombol tetap terlihat di laptop 1280×720.
+ */
 
-const Noise = () => (
-  <svg
-    className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.04] mix-blend-overlay z-0"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <filter id="noiseFilter">
-      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
-    </filter>
-    <rect width="100%" height="100%" filter="url(#noiseFilter)" />
-  </svg>
-);
+const WORD = "block font-display font-black leading-[0.82] tracking-[-0.035em] text-espresso uppercase";
+const ACCENT =
+  "block font-display font-wonky font-medium italic leading-[0.9] tracking-[-0.02em] text-caramel-500 normal-case";
 
 export function Hero() {
   return (
-    <section
-      id="beranda"
-      aria-labelledby="hero-title"
-      className="relative isolate overflow-hidden bg-cream pt-(--nav-h)"
-    >
-      <style>{`
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-          50% { transform: translateY(-25px) rotate(10deg) scale(1.05); }
-        }
-        .animate-float {
-          animation: float-slow 7s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-slow 8s ease-in-out infinite;
-          animation-delay: -3.5s;
-        }
-        @keyframes scroll-line {
-          0% { transform: scaleY(0); transform-origin: top; opacity: 0; }
-          50% { transform: scaleY(1); transform-origin: top; opacity: 1; }
-          50.1% { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
-          100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
-        }
-        .animate-scroll-line {
-          animation: scroll-line 2.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-        }
-      `}</style>
+    <section id="home" aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-milk">
+      <h1 id="hero-title" className="sr-only">
+        Loka Pudding: puding karamel homemade yang lembut, lumer, dan bikin nagih
+      </h1>
 
       <HeroBackdrop />
-      <Noise />
 
-      {/* Decorative Floating Organic Shapes (Caramel Vibe) */}
-      <div className="absolute top-[25%] left-[10%] w-8 h-8 rounded-[40%_60%_70%_30%] bg-gradient-to-br from-[#ffc94d] to-[#d97700] opacity-30 blur-[2px] animate-float z-0" />
-      <div className="absolute top-[65%] right-[15%] w-12 h-12 rounded-[60%_40%_30%_70%] bg-gradient-to-br from-[#ffebd6] to-[#c27a29] opacity-40 blur-[3px] animate-float-delayed z-0" />
-      <div className="absolute bottom-[25%] left-[20%] w-5 h-5 rounded-full bg-[#d97700] opacity-20 blur-[1px] animate-float z-0" />
+      <div className="relative mx-auto flex min-h-svh w-full max-w-[90rem] flex-col px-4 pt-[calc(var(--nav-h)+0.75rem)] pb-10 sm:px-8 lg:pt-[calc(var(--nav-h)+0.25rem)] lg:pr-24 lg:pb-12 lg:pl-14">
+        {/* Baris utama: teks kiri, puding, teks kanan */}
+        <div className="relative grid flex-1 grid-cols-1 items-center lg:grid-cols-[1fr_auto_1fr]">
+          <p
+            aria-hidden="true"
+            className="relative z-20 -mb-[clamp(1.5rem,6svh,3rem)] animate-rise text-center mix-blend-multiply lg:mb-0 lg:-mr-[4.5vw] lg:text-left"
+          >
+            <span className="mb-4 hidden items-center gap-3 text-xs font-bold tracking-[0.22em] text-caramel-700 uppercase lg:flex">
+              <span className="h-px w-10 bg-caramel-500/60" />
+              Signature dish
+            </span>
+            <span className={`${WORD} text-[clamp(3.1rem,15vw,4.6rem)] lg:text-[clamp(4.25rem,min(7.2vw,13svh),7.5rem)]`}>
+              Lembut
+            </span>
+            <span className={`${ACCENT} text-[clamp(3.5rem,17vw,5.25rem)] lg:text-[clamp(4.75rem,min(8.2vw,15svh),8.5rem)]`}>
+              Lumer
+            </span>
+          </p>
 
-      {/* Teks raksasa transparan di background */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none opacity-[0.035] mix-blend-multiply">
-        <span className="text-[30vw] font-black tracking-tighter text-[#c27a29] leading-none whitespace-nowrap">
-          KARAMEL
-        </span>
-      </div>
-
-      <Container className="relative flex flex-col items-center justify-center min-h-[calc(100svh-var(--nav-h))] py-12 lg:py-4">
-        
-        {/* Spinning Badge (Desktop Only) */}
-        <div className="hidden lg:block absolute top-[12%] right-[5%] w-32 h-32 animate-[spin_12s_linear_infinite] opacity-50 z-20 pointer-events-none">
-          <svg viewBox="0 0 100 100" className="w-full h-full text-[#c27a29]">
-            <path id="circlePath" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none" />
-            <text className="text-[11.5px] font-bold uppercase tracking-[0.25em]" fill="currentColor">
-              <textPath href="#circlePath" startOffset="0%">
-                • 100% HOMEMADE • FRESHLY CRAFTED 
-              </textPath>
-            </text>
-          </svg>
-        </div>
-
-        {/* Layout Typografi Editorial + 3D Pudding di tengah */}
-        <div className="relative w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 items-center z-10 mt-6 lg:mt-0">
-          
-          {/* Teks Kiri */}
-          <div className="text-center lg:text-left z-20 pointer-events-none mix-blend-multiply translate-y-12 lg:translate-y-0 lg:translate-x-12 relative">
-            <div className="hidden lg:flex items-center gap-3 absolute -top-12 left-1 animate-rise opacity-60">
-               <div className="h-[1px] w-12 bg-ink"></div>
-               <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-ink">Signature Dish</span>
-            </div>
-            <h1 id="hero-title" className="text-[clamp(4rem,10vw,6.5rem)] leading-[0.8] font-black tracking-tighter text-ink animate-rise">
-              <span className="block mb-2">LEMBUT</span>
-              <span className={`block text-[#c27a29] ${playfair.className} italic font-normal text-[clamp(4.5rem,12vw,7.5rem)]`}>Lumer</span>
-            </h1>
-          </div>
-
-          {/* Stage 3D Pudding */}
-          <div className="relative w-[140%] -ml-[20%] lg:w-[130%] lg:-ml-[15%] aspect-square lg:scale-110 z-10 [pointer-events:auto]">
+          {/* Puding 3D (atau ilustrasi) */}
+          <div className="relative z-10 mx-auto w-[min(100%,25rem,44svh)] sm:w-[min(100%,30rem,48svh)] lg:w-[min(40vw,60svh,42rem)]">
             <PuddingStage fallback={<PuddingFallback className="h-full w-full" />} />
+            <HandNote
+              arrow="up-right"
+              arrowSide="end"
+              className="absolute bottom-[9%] -left-1 -rotate-6 text-[1.35rem] sm:left-[2%] sm:text-[1.6rem] lg:bottom-[12%] lg:-left-[6%] lg:text-[1.85rem]"
+            >
+              colek aku!
+            </HandNote>
           </div>
 
-          {/* Teks Kanan */}
-          <div className="text-center lg:text-right z-20 pointer-events-none mix-blend-multiply -translate-y-10 lg:translate-y-0 lg:-translate-x-12 relative">
-            <h1 className="text-[clamp(4rem,10vw,6.5rem)] leading-[0.8] font-black tracking-tighter text-ink animate-rise [animation-delay:200ms]">
-              <span className="block mb-2">BIKIN</span>
-              <span className={`block text-[#d97700] ${playfair.className} italic font-normal text-[clamp(4.5rem,12vw,7.5rem)] relative`}>
+          <p
+            aria-hidden="true"
+            className="relative z-20 -mt-[clamp(1.5rem,6svh,3rem)] animate-rise text-center mix-blend-multiply [animation-delay:150ms] lg:mt-0 lg:-ml-[4.5vw] lg:text-right"
+          >
+            <span className={`${WORD} text-[clamp(3.1rem,15vw,4.6rem)] lg:text-[clamp(4.25rem,min(7.2vw,13svh),7.5rem)]`}>
+              Bikin
+            </span>
+            <span className={`${ACCENT} text-[clamp(3.5rem,17vw,5.25rem)] lg:text-[clamp(4.75rem,min(8.2vw,15svh),8.5rem)]`}>
+              <span className="relative inline-block">
                 Nagih
-                {/* SVG coretan estetis */}
+                {/* Coretan toffee tepat di bawah kata */}
                 <svg
-                  aria-hidden="true"
                   viewBox="0 0 120 14"
                   preserveAspectRatio="none"
-                  className="absolute -bottom-[0.1em] left-0 h-[0.26em] w-full overflow-visible opacity-80"
+                  className="absolute inset-x-[4%] -bottom-[0.08em] h-[0.2em] w-[92%] overflow-visible"
+                  focusable="false"
                 >
                   <path
                     d="M3 9c12-7 22-7 30 0s18 7 28 0 18-7 28 0 18 7 28 0"
                     pathLength={1}
                     fill="none"
-                    stroke="#ffc94d"
-                    strokeWidth="6"
+                    stroke="currentColor"
+                    strokeWidth="7"
                     strokeLinecap="round"
-                    className="animate-draw [animation-delay:0.8s] [stroke-dasharray:1] [stroke-dashoffset:1]"
+                    className="animate-draw text-caramel-300 [animation-delay:0.9s] [stroke-dasharray:1] [stroke-dashoffset:1]"
                   />
                 </svg>
               </span>
-            </h1>
-            <div className="hidden lg:flex items-center gap-3 absolute -bottom-12 right-2 animate-rise opacity-60 [animation-delay:400ms] justify-end">
-               <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-ink">Taste the Magic</span>
-               <div className="h-[1px] w-12 bg-ink"></div>
-            </div>
-          </div>
+            </span>
+            <span className="mt-5 hidden items-center justify-end gap-3 text-xs font-bold tracking-[0.22em] text-caramel-700 uppercase lg:flex">
+              Resep keluarga
+              <span className="h-px w-10 bg-caramel-500/60" />
+            </span>
+          </p>
         </div>
 
-        {/* Deskripsi & Call to Action (CTA) */}
-        <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between gap-8 mt-10 lg:mt-16 z-20">
-          <div className="flex flex-col items-center md:items-start gap-4">
-            <p className="inline-flex animate-rise items-center gap-2 text-[11px] font-bold text-[#c27a29] uppercase tracking-[0.25em] [animation-delay:400ms]">
-              <SparkleIcon className="size-4 text-[#d97700]" />
-              Premium & Fresh
-            </p>
-            <p className="max-w-[400px] animate-rise text-center md:text-left text-lg leading-relaxed text-ink-muted [animation-delay:500ms]">
-              Dibuat segar setiap pagi pakai susu asli dan saus karamel pilihan. Sensasi tekstur yang bikin kamu gak bisa berhenti di suapan pertama!
+        {/* Baris bawah: cerita singkat + tombol */}
+        <div className="relative z-20 mt-6 flex flex-col items-center gap-6 text-center md:mt-4 md:flex-row md:items-end md:justify-between md:text-left">
+          <div className="flex max-w-md flex-col items-center gap-3 md:items-start">
+            <Eyebrow centered className="animate-rise [animation-delay:350ms] md:justify-start md:[&>span:last-child]:hidden">
+              Premium &amp; fresh
+            </Eyebrow>
+            <p className="animate-rise text-[0.98rem] leading-relaxed text-ink-muted [animation-delay:450ms] sm:text-lg">
+              Dibuat segar setiap pagi pakai susu asli dan saus karamel pilihan.
+              <span className="hidden sm:inline"> Sekali suap, dijamin susah berhenti!</span>
             </p>
           </div>
-          
-          <div className="flex w-full md:w-auto animate-rise flex-col sm:flex-row gap-4 [animation-delay:600ms]">
-            <ButtonLink href="#menu" size="lg" className="w-full sm:w-auto rounded-full bg-[#0b1b3f] text-white hover:bg-opacity-90 border-none shadow-xl shadow-[#0b1b3f]/20 transition-transform hover:scale-105 active:scale-95">
+
+          <div className="flex w-full animate-rise gap-3 [animation-delay:550ms] sm:w-auto">
+            <ButtonLink href="#menu" variant="dark" size="lg" className="flex-1 sm:flex-none">
               Lihat Menu
-              <ArrowRightIcon />
+              <ArrowDownIcon />
             </ButtonLink>
-            <ButtonLink
-              href={whatsappOrderLink()}
-              external
-              variant="outline"
-              size="lg"
-              className="w-full sm:w-auto rounded-full border-ink/20 text-ink hover:bg-ink/5 transition-transform hover:scale-105 active:scale-95 bg-white/50 backdrop-blur-sm"
-            >
+            <ButtonLink href={whatsappOrderLink()} external variant="outline" size="lg" className="flex-1 sm:flex-none">
               <WhatsAppIcon />
-              Pesan via WhatsApp
+              <span className="sm:hidden">Pesan</span>
+              <span className="hidden sm:inline">Pesan via WhatsApp</span>
             </ButtonLink>
           </div>
-        </div>
-
-      </Container>
-
-      {/* Scroll Indicator */}
-      <div className="hidden lg:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-3 animate-rise [animation-delay:800ms] opacity-50 z-20">
-        <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-ink [writing-mode:vertical-lr] rotate-180">Scroll</span>
-        <div className="w-[1px] h-12 bg-ink/20 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-full bg-ink animate-scroll-line" />
         </div>
       </div>
-
-      <WaveDivider className="text-[#fff3e0] relative z-10" />
     </section>
   );
 }
 
-/** Latar lembut: gradasi radial disesuaikan ke warna karamel yang hangat. */
+/** Latar: cahaya karamel lembut, butiran halus, kata "KARAMEL" bergaris luar, dan stiker berputar. */
 function HeroBackdrop() {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-      <div className="absolute -top-56 -right-48 size-[44rem] rounded-full bg-[radial-gradient(closest-side,#ffebd6,transparent)]" />
-      <div className="absolute top-[38%] -left-72 size-[38rem] rounded-full bg-[radial-gradient(closest-side,#fff3e0,transparent)]" />
-      <div className="absolute top-[16%] left-[4%] hidden size-3 rounded-full bg-[#c27a29]/80 lg:block" />
-      <div className="absolute top-[62%] right-[5%] hidden size-4 rounded-full bg-[#d97700]/20 sm:block" />
-      <div className="absolute bottom-[14%] left-[46%] hidden size-2.5 rounded-full bg-[#c27a29]/30 lg:block" />
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 select-none">
+      <div className="bg-grain absolute inset-0 opacity-70" />
+      <div className="absolute -top-48 -right-40 size-[40rem] rounded-full bg-[radial-gradient(closest-side,var(--color-caramel-100),transparent)]" />
+      <div className="absolute top-[45%] -left-64 size-[36rem] rounded-full bg-[radial-gradient(closest-side,var(--color-caramel-50),transparent)]" />
+      <div className="absolute inset-x-0 top-[46%] hidden -translate-y-1/2 justify-center overflow-hidden lg:flex">
+        <span className="text-outline font-display text-[21vw] leading-none font-black tracking-[-0.04em] whitespace-nowrap text-caramel-200 [--outline-width:1.5px]">
+          KARAMEL
+        </span>
+      </div>
+
+      {/* Tetesan karamel yang melayang */}
+      <span className="absolute top-[24%] left-[7%] hidden size-7 animate-float rounded-[45%_55%_60%_40%] bg-gradient-to-br from-caramel-300 to-caramel-600 opacity-60 motion-reduce:animate-none lg:block" />
+      <span className="absolute top-[70%] right-[12%] hidden size-10 animate-float rounded-[60%_40%_45%_55%] bg-gradient-to-br from-caramel-200 to-caramel-500 opacity-50 [animation-delay:-3s] motion-reduce:animate-none sm:block" />
+      <span className="absolute bottom-[20%] left-[42%] hidden size-3 rounded-full bg-caramel-400/50 lg:block" />
+
+      {/* Stiker berputar */}
+      <div className="absolute top-[13%] right-[8%] hidden size-32 animate-spin-slow text-caramel-600 motion-reduce:animate-none lg:block xl:right-[11%]">
+        <svg viewBox="0 0 100 100" className="size-full" focusable="false">
+          <path id="hero-badge-circle" d="M50 50m-37 0a37 37 0 1 1 74 0a37 37 0 1 1-74 0" fill="none" />
+          {/* textLength = keliling lingkaran (2π·37): huruf diberi jarak otomatis agar pas satu putaran */}
+          <text className="fill-current text-[9.5px] font-bold uppercase">
+            <textPath href="#hero-badge-circle" textLength="230" lengthAdjust="spacing">
+              100% homemade • dibuat tiap pagi •
+            </textPath>
+          </text>
+          <path d="M50 38l3.2 8.8L62 50l-8.8 3.2L50 62l-3.2-8.8L38 50l8.8-3.2z" className="fill-caramel-400" />
+        </svg>
+      </div>
     </div>
   );
 }

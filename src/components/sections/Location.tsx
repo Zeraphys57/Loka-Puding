@@ -1,174 +1,202 @@
 "use client";
 
 import { useRef } from "react";
-import { ClockIcon, MapPinIcon, WhatsAppIcon } from "@/components/ui/Icons";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { HandNote } from "@/components/ui/HandNote";
+import { ArrowUpRightIcon, ClockIcon, MapPinIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { siteConfig } from "@/config/site";
 import { formatTime } from "@/lib/format";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { whatsappOrderLink } from "@/lib/whatsapp";
-import { Playfair_Display } from "next/font/google";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
+/*
+ * Desktop (≥1024px & gerakan diizinkan): section menempel di layar, lingkaran peta membesar
+ * mengikuti scroll lalu kartu info muncul. Mobile, tablet, atau "kurangi gerakan":
+ * tata letak biasa (judul → peta → kartu info), tanpa scroll-jacking.
+ * Peta tidak bisa di-scroll/di-drag (pointer-events: none) supaya scroll halaman tidak "nyangkut";
+ * untuk navigasi ada tombol "Buka di Google Maps".
+ */
 export function Location() {
-  const { address, openingHours, maps, delivery } = siteConfig;
-  
-  const containerRef = useRef<HTMLDivElement>(null);
-  const maskRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const { address, openingHours, maps } = siteConfig;
 
-  useGSAP(() => {
-    // Only apply scroll jacking on desktop to avoid weird mobile behavior
-    const mm = gsap.matchMedia();
-    
-    mm.add("(min-width: 768px)", () => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: "+=1500", // Dikembalikan ke jarak yang pas
-          pin: true,
-          scrub: 0.8, // Scrubbing yang lebih responsif
-        }
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const maskRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      mm.add("(min-width: 1024px) and (min-height: 600px) and (prefers-reduced-motion: no-preference)", () => {
+        // Satuan awal & akhir harus sama (persen) agar GSAP bisa menginterpolasi clip-path dengan benar
+        gsap.set(maskRef.current, { clipPath: "circle(12% at 50% 50%)" });
+        gsap.set(cardRef.current, { autoAlpha: 0, y: 70, scale: 0.96 });
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top top",
+            end: "+=1100",
+            pin: true,
+            scrub: 0.8,
+          },
+        });
+        // Lingkaran peta membesar (linear: wajib untuk animasi yang di-scrub)
+        tl.to(maskRef.current, { clipPath: "circle(75% at 50% 50%)", ease: "none", duration: 1 }, 0.1);
+        tl.to(titleRef.current, { autoAlpha: 0, scale: 1.08, duration: 0.45, ease: "power1.in" }, 0.1);
+        tl.to(cardRef.current, { autoAlpha: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" }, 0.62);
       });
 
-      // 1. Expand mask (Starts after a very short 0.15 delay)
-      tl.to(maskRef.current, {
-        clipPath: "circle(150vw at 50% 50%)",
-        ease: "none", // Linear ease is mandatory for smooth scroll-scrub animations
-        duration: 1
-      }, 0.15); 
+      // Desktop tanpa animasi: langsung tampilkan keadaan akhir
+      mm.add("(min-width: 1024px) and (min-height: 600px) and (prefers-reduced-motion: reduce)", () => {
+        gsap.set(maskRef.current, { clipPath: "circle(75% at 50% 50%)" });
+        gsap.set(titleRef.current, { autoAlpha: 0 });
+      });
 
-      // 2. Fade and scale out background text
-      tl.to(textRef.current, {
-        opacity: 0,
-        scale: 1.1,
-        duration: 0.4
-      }, 0.15);
+      // Layar desktop yang pendek: peta langsung terbuka penuh, tanpa efek menempel
+      mm.add("(min-width: 1024px) and (max-height: 599px)", () => {
+        gsap.set(maskRef.current, { clipPath: "circle(75% at 50% 50%)" });
+        gsap.set(titleRef.current, { autoAlpha: 0 });
+      });
+    },
+    { scope: sectionRef },
+  );
 
-      // 3. Bring in the floating glass info card (No bounce, very smooth power3)
-      tl.fromTo(contentRef.current, {
-        autoAlpha: 0,
-        y: 80,
-        scale: 0.95
-      }, {
-        autoAlpha: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.6,
-        ease: "power3.out"
-      }, 0.6); 
-      
-      return () => {
-        // cleanup if needed
-      };
-    });
-    
-    // For mobile, just show the final state
-    mm.add("(max-width: 767px)", () => {
-      gsap.set(maskRef.current, { clipPath: "circle(150% at 50% 50%)" });
-      gsap.set(textRef.current, { display: "none" });
-      gsap.set(contentRef.current, { autoAlpha: 1, y: 0, scale: 1 });
-    });
-
-  }, { scope: containerRef });
+  const mapFrame = (
+    <iframe
+      src={maps.embedUrl}
+      title={`Peta lokasi ${siteConfig.name}`}
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+      tabIndex={-1}
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 size-full border-0 [filter:sepia(0.35)_saturate(0.85)_contrast(1.05)]"
+    />
+  );
 
   return (
-    <section ref={containerRef} id="lokasi" aria-labelledby="lokasi-title" className="relative h-screen bg-ink overflow-hidden flex items-center justify-center">
-      
-      {/* BACKGROUND TEXT (Visible initially) */}
-      <div ref={textRef} className="absolute inset-0 z-10 pointer-events-none">
-         <h2 className={`absolute top-[15%] left-1/2 -translate-x-1/2 text-[18vw] sm:text-[10rem] lg:text-[12rem] font-black text-white leading-none tracking-tighter text-center`}>
-           DAPUR
-         </h2>
-         <h2 className={`absolute bottom-[20%] left-1/2 -translate-x-1/2 text-[18vw] sm:text-[10rem] lg:text-[12rem] text-[#c27a29] italic font-normal leading-none text-center ${playfair.className}`}>
-           kami
-         </h2>
-         <p className="absolute bottom-[8%] left-1/2 -translate-x-1/2 text-white/40 tracking-[0.4em] sm:tracking-[0.5em] uppercase text-[10px] sm:text-xs font-bold animate-pulse w-full text-center">
-           Scroll ke bawah
-         </p>
+    <section
+      ref={sectionRef}
+      id="lokasi"
+      aria-labelledby="lokasi-title"
+      className="on-dark relative overflow-hidden bg-espresso-900 text-milk-50 lg:h-svh"
+    >
+      <div aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-60" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-1/2 size-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(189_110_35/0.28),transparent)]"
+      />
+
+      {/* Judul besar: di desktop menjadi layar pembuka sebelum peta terbuka */}
+      <div
+        ref={titleRef}
+        className="relative z-10 flex flex-col items-center px-4 pt-28 text-center sm:pt-36 lg:pointer-events-none lg:absolute lg:inset-0 lg:justify-center lg:pt-0"
+      >
+        <Eyebrow centered tone="dark" className="mb-5">
+          Lokasi
+        </Eyebrow>
+        <h2 id="lokasi-title" className="leading-[0.85] tracking-[-0.035em]">
+          <span className="block text-[clamp(4rem,17vw,11rem)] font-black uppercase">Dapur</span>
+          <span className="font-wonky -mt-1 block text-[clamp(4.25rem,18vw,12rem)] font-medium text-caramel-400 italic">
+            kami
+          </span>
+        </h2>
+        <p className="mt-6 hidden text-xs font-bold tracking-[0.3em] text-milk-50/60 uppercase motion-safe:lg:block">
+          Scroll untuk membuka peta
+        </p>
       </div>
 
-      {/* THE MASKED MAP CONTAINER */}
-      <div 
-        ref={maskRef} 
-        className="absolute inset-0 z-20 will-change-[clip-path]"
-        style={{ clipPath: "circle(10vw at 50% 50%)" }}
-      >
-        {/* Fullscreen Map */}
-        <iframe
-          src={maps.embedUrl}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          className="absolute inset-0 size-full border-0 filter grayscale-[0.3] contrast-125 sepia-[0.2]"
-        />
-
-        {/* Overlay gradient so the map isn't too bright */}
-        <div className="absolute inset-0 bg-ink/60 pointer-events-none" />
-
-        {/* FLOATING INFO PANEL (Inside the mask so it only appears when revealed) */}
-        <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8 pointer-events-none">
-           <div 
-             ref={contentRef}
-             className="w-full max-w-5xl bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 sm:p-12 shadow-2xl shadow-black/80 pointer-events-auto flex flex-col lg:flex-row gap-8 lg:gap-16 invisible"
-           >
-              {/* Left: Address & Hours */}
-              <div className="flex-1 flex flex-col gap-8">
-                 <div>
-                   <h3 className="text-[#c27a29] text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
-                     <MapPinIcon className="w-5 h-5" /> Lokasi
-                   </h3>
-                   <p className="text-white text-2xl sm:text-4xl font-black leading-[1.1] mb-3">
-                     {address.street}
-                   </p>
-                   <p className="text-white/60 text-sm sm:text-lg leading-relaxed">
-                     {address.locality}, {address.city} <br/> {address.region} {address.postalCode}
-                   </p>
-                 </div>
-
-                 <div className="w-full h-[1px] bg-white/10" />
-
-                 <div>
-                   <h3 className="text-[#c27a29] text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
-                     <ClockIcon className="w-5 h-5" /> Jam Operasional
-                   </h3>
-                   <div className="flex flex-col gap-3">
-                     {openingHours.map((slot) => (
-                       <div key={slot.label} className="flex justify-between items-end text-sm sm:text-base border-b border-white/5 pb-2">
-                         <span className="text-white/50">{slot.label}</span>
-                         <span className="text-white font-bold">{formatTime(slot.opens)} - {formatTime(slot.closes)}</span>
-                       </div>
-                     ))}
-                   </div>
-                 </div>
-              </div>
-
-              {/* Right: Actions */}
-              <div className="flex-1 flex flex-col gap-4 justify-center">
-                 <a href={whatsappOrderLink()} target="_blank" rel="noreferrer" className="w-full bg-[#25D366] text-white p-6 sm:p-8 rounded-[2rem] flex items-center justify-between group hover:scale-[1.02] transition-transform shadow-xl shadow-[#25D366]/20">
-                    <div>
-                      <h4 className="font-black text-2xl sm:text-3xl mb-1">WhatsApp</h4>
-                      <p className="text-white/80 text-[10px] uppercase tracking-[0.2em] font-bold">Pesan Langsung</p>
-                    </div>
-                    <WhatsAppIcon className="w-10 h-10 sm:w-12 sm:h-12 group-hover:rotate-12 transition-transform" />
-                 </a>
-                 
-                 <a href={maps.link} target="_blank" rel="noreferrer" className="w-full bg-white/5 border border-white/10 text-white p-6 rounded-[2rem] flex items-center justify-between group hover:bg-white/10 transition-colors">
-                    <div>
-                      <h4 className="font-bold text-lg sm:text-xl mb-1">Buka di Maps</h4>
-                      <p className="text-white/50 text-[10px] uppercase tracking-[0.2em] font-bold">Navigasi ke dapur</p>
-                    </div>
-                    <MapPinIcon className="w-8 h-8 text-white/50 group-hover:text-white transition-colors" />
-                 </a>
-              </div>
-           </div>
+      <div className="relative mx-auto w-full max-w-5xl px-4 pt-12 pb-28 sm:px-6 sm:pb-36 lg:static lg:max-w-none lg:p-0">
+        {/* Peta: kartu di mobile, layar penuh bertopeng lingkaran di desktop */}
+        <div
+          ref={maskRef}
+          className="relative aspect-[4/3] overflow-hidden rounded-[2rem] shadow-pop ring-1 ring-milk-50/10 sm:aspect-[16/9] lg:absolute lg:inset-0 lg:aspect-auto lg:rounded-none lg:shadow-none lg:ring-0 lg:[clip-path:circle(12%_at_50%_50%)]"
+        >
+          {mapFrame}
+          <div className="pointer-events-none absolute inset-0 bg-espresso-900/25 lg:bg-espresso-900/55" />
+          <a
+            href={maps.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute right-4 bottom-4 inline-flex items-center gap-2 rounded-full bg-milk-50 px-5 py-3 text-sm font-bold text-espresso shadow-sticker transition-transform duration-500 ease-jelly hover:-translate-y-0.5 lg:hidden"
+          >
+            <MapPinIcon className="size-4 text-caramel-600" />
+            Buka di Google Maps
+          </a>
         </div>
 
+        {/* Kartu info */}
+        <div
+          ref={cardRef}
+          className="relative z-10 mt-6 lg:pointer-events-none lg:absolute lg:inset-0 lg:mt-0 lg:flex lg:items-center lg:justify-center lg:p-8"
+        >
+          <div className="relative flex flex-col gap-8 rounded-[2.25rem] bg-espresso-800/95 p-6 shadow-pop ring-1 ring-milk-50/10 sm:p-10 lg:pointer-events-auto lg:w-full lg:max-w-4xl lg:flex-row lg:gap-12 lg:bg-espresso-900/80 lg:p-10 lg:backdrop-blur-xl xl:p-12">
+            <HandNote arrow="down-left" arrowSide="start" className="absolute -top-9 right-6 rotate-3 text-caramel-300 sm:right-10">
+              mampir yuk!
+            </HandNote>
+
+            <div className="flex flex-1 flex-col gap-7">
+              <div>
+                <h3 className="mb-3 flex items-center gap-2.5 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">
+                  <MapPinIcon className="size-5" /> Alamat
+                </h3>
+                <p className="font-display text-[1.7rem] leading-[1.1] font-bold sm:text-4xl">{address.street}</p>
+                <p className="mt-2 leading-relaxed text-milk-50/75 sm:text-lg">
+                  {address.locality}, {address.city}
+                  <br />
+                  {address.region} {address.postalCode}
+                </p>
+              </div>
+              <div className="h-px w-full bg-milk-50/10" />
+              <div>
+                <h3 className="mb-4 flex items-center gap-2.5 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">
+                  <ClockIcon className="size-5" /> Jam buka
+                </h3>
+                <dl className="flex flex-col gap-3">
+                  {openingHours.map((slot) => (
+                    <div key={slot.label} className="flex items-end justify-between gap-4 border-b border-milk-50/10 pb-2.5">
+                      <dt className="text-milk-50/75">{slot.label}</dt>
+                      <dd className="font-bold tabular-nums">
+                        {formatTime(slot.opens)} – {formatTime(slot.closes)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+
+            <div className="flex flex-1 flex-col justify-center gap-4">
+              <a
+                href={whatsappOrderLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between gap-4 rounded-[1.75rem] bg-caramel-600 p-6 text-white shadow-sticker transition-transform duration-500 ease-jelly hover:-translate-y-1 sm:p-7"
+              >
+                <span>
+                  <span className="block font-display text-2xl font-bold sm:text-3xl">Chat WhatsApp</span>
+                  <span className="mt-1 block text-xs font-bold tracking-[0.18em] text-caramel-50 uppercase">
+                    Pesan &amp; tanya stok
+                  </span>
+                </span>
+                <WhatsAppIcon className="size-10 shrink-0 transition-transform duration-500 ease-jelly group-hover:rotate-12 sm:size-12" />
+              </a>
+              <a
+                href={maps.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between gap-4 rounded-[1.75rem] bg-milk-50/5 p-6 ring-1 ring-milk-50/15 transition-colors hover:bg-milk-50/10"
+              >
+                <span>
+                  <span className="block font-display text-xl font-bold sm:text-2xl">Buka di Google Maps</span>
+                  <span className="mt-1 block text-xs font-bold tracking-[0.18em] text-milk-50/70 uppercase">
+                    Petunjuk arah ke dapur
+                  </span>
+                </span>
+                <ArrowUpRightIcon className="size-7 shrink-0 text-caramel-300 transition-transform duration-500 ease-jelly group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

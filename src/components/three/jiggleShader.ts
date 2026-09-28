@@ -1,4 +1,5 @@
 import { Vector2, Vector3, type IUniform, type Material, type WebGLProgramParametersWithUniforms } from "three";
+import { injectSurface, type SurfaceOptions } from "./surfaceDetail";
 
 /**
  * Deformasi "jiggle" di vertex shader, disuntikkan ke material bawaan three.js lewat
@@ -47,7 +48,7 @@ vec3 jiggleDeform(vec3 p, vec3 n) {
   float hb = min(h, 1.0);
 
   // Lengkung samping: kubik yang melewati dasar (diam, kemiringan 0), tengah (h=0.5) dan puncak (h=1).
-  // Di atas puncak (krim & buah) diteruskan secara linear agar topping ikut miring.
+  // Di atas puncak diteruskan secara linear, jadi topping (jika kelak ditambah) ikut miring.
   vec2 a = 8.0 * uMid - uTop;
   vec2 b = 2.0 * uTop - 8.0 * uMid;
   vec2 bend = a * hb * hb + b * hb * hb * hb + (2.0 * a + 3.0 * b) * max(h - 1.0, 0.0);
@@ -79,10 +80,11 @@ vec3 jiggleNormal(vec3 p, vec3 n, vec3 deformed) {
 }
 `;
 
-const CACHE_KEY = "loka-jiggle-v1";
-
-/** Pasang deformasi jiggle pada material (sebelum material pertama kali dikompilasi). */
-export function applyJiggle<T extends Material>(material: T, uniforms: JiggleUniforms): T {
+/**
+ * Pasang deformasi jiggle pada material (sebelum material pertama kali dikompilasi),
+ * opsional sekaligus tekstur permukaannya (lihat surfaceDetail.ts).
+ */
+export function applyJiggle<T extends Material>(material: T, uniforms: JiggleUniforms, surface?: SurfaceOptions): T {
   material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = DEFORM_GLSL + shader.vertexShader
@@ -97,7 +99,8 @@ export function applyJiggle<T extends Material>(material: T, uniforms: JiggleUni
         `#include <begin_vertex>
         transformed = jiggledPosition;`,
       );
+    if (surface) injectSurface(shader, surface);
   };
-  material.customProgramCacheKey = () => CACHE_KEY;
+  material.customProgramCacheKey = () => `loka-jiggle-v2-${surface?.kind ?? "plain"}`;
   return material;
 }

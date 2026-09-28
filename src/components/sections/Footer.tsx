@@ -1,64 +1,142 @@
+import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { InstagramIcon, TikTokIcon } from "@/components/ui/Icons";
-import { siteConfig } from "@/config/site";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { HeartIcon, InstagramIcon, TikTokIcon, WhatsAppIcon } from "@/components/ui/Icons";
+import { Logo } from "@/components/ui/Logo";
+import { navLinks, siteConfig } from "@/config/site";
+import { formatTime } from "@/lib/format";
 import { whatsappOrderLink } from "@/lib/whatsapp";
-import { Playfair_Display } from "next/font/google";
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
+/*
+ * Footer "tersingkap": menempel di dasar layar (sticky) di belakang konten, lalu terlihat
+ * saat section terakhir bergulir ke atas. Tingginya mengikuti isi, jadi aman di layar pendek.
+ */
 export function Footer() {
-  const { social } = siteConfig;
+  const { social, address, openingHours } = siteConfig;
 
   return (
-    // The wrapper has clip-path which makes the fixed child only visible when the wrapper is in view.
-    // This creates an incredibly premium "Uncover / Lift the Blanket" footer reveal effect.
-    <footer className="relative h-[70vh] sm:h-[80vh]" style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}>
-      
-      <div className="fixed bottom-0 left-0 w-full h-[70vh] sm:h-[80vh] flex flex-col justify-end pb-8 sm:pb-12 bg-[#0c0e12] overflow-hidden -z-10">
-        
-        {/* Massive Cinematic Text in Background */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center px-4 pointer-events-none">
-           <h2 className={`text-[15vw] font-black text-white/[0.03] leading-none tracking-tighter ${playfair.className}`}>
-             SAMPAI <br/> JUMPA
-           </h2>
+    <footer className="on-dark sticky bottom-0 -z-10 overflow-hidden bg-espresso-900 text-milk-50">
+      <div aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-60" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 left-1/2 size-[50rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(189_110_35/0.3),transparent)]"
+      />
+
+      <Container className="relative pt-24 pb-8 sm:pt-28">
+        {/* Ajakan utama */}
+        <div className="flex flex-col gap-10 border-b border-milk-50/10 pb-14 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <Eyebrow tone="dark" className="mb-6">
+              Yuk, pesan
+            </Eyebrow>
+            <h2 className="text-[clamp(2.5rem,6.5vw,4.75rem)] leading-[1.02] font-black tracking-[-0.03em]">
+              Siap menikmati puding{" "}
+              <span className="font-wonky font-medium text-caramel-300 italic">lumer</span> di mulut?
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink href={whatsappOrderLink()} external variant="primary" size="lg">
+              <WhatsAppIcon />
+              Pesan via WhatsApp
+            </ButtonLink>
+            <ButtonLink href="#menu" variant="light" size="lg">
+              Lihat Menu
+            </ButtonLink>
+          </div>
         </div>
 
-        {/* Ambient Glow */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] bg-[#c27a29] rounded-full mix-blend-screen filter blur-[200px] opacity-10 pointer-events-none" />
+        {/* Info */}
+        <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+          <div className="flex flex-col gap-4">
+            <a href="#home" className="group/logo w-fit rounded-full" aria-label="Loka Pudding, kembali ke atas">
+              <Logo tone="light" id="mark-footer" />
+            </a>
+            <p className="max-w-xs leading-relaxed text-milk-50/70">{siteConfig.tagline}</p>
+          </div>
 
-        <Container className="relative z-10 flex flex-col gap-10 sm:gap-16">
-           
-           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 border-b border-white/10 pb-10 sm:pb-16">
-              <div className="flex flex-col gap-6 sm:gap-8 max-w-2xl">
-                 <h3 className="text-4xl sm:text-5xl lg:text-[4.5rem] font-black text-white leading-[1.1] tracking-tight">
-                   Siap menikmati <br/> puding <span className="text-[#c27a29] italic">lumer</span> di mulut?
-                 </h3>
-                 <a href={whatsappOrderLink()} target="_blank" rel="noreferrer" className="w-fit bg-[#c27a29] text-white px-8 py-4 sm:px-10 sm:py-5 rounded-full font-bold uppercase tracking-[0.2em] text-xs transition-all hover:bg-white hover:text-ink hover:scale-105 active:scale-95 shadow-xl shadow-[#c27a29]/20">
-                   Pesan Sekarang
-                 </a>
-              </div>
+          <nav aria-label="Navigasi footer">
+            <h3 className="mb-4 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">Jelajahi</h3>
+            <ul className="flex flex-col gap-2.5">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <a href={link.href} className="text-milk-50/80 transition-colors hover:text-caramel-300">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-              <div className="flex gap-4">
-                 <a href={social.instagram.url} target="_blank" rel="noreferrer" aria-label="Instagram" className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#E1306C] transition-colors shadow-lg">
-                    <InstagramIcon className="w-6 h-6" />
-                 </a>
-                 <a href={social.tiktok.url} target="_blank" rel="noreferrer" aria-label="TikTok" className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#00f2fe] hover:text-black transition-colors shadow-lg">
-                    <TikTokIcon className="w-6 h-6" />
-                 </a>
-              </div>
-           </div>
+          <div>
+            <h3 className="mb-4 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">Dapur kami</h3>
+            <address className="leading-relaxed text-milk-50/80 not-italic">
+              {address.street}
+              <br />
+              {address.locality}, {address.city}
+            </address>
+            <ul className="mt-3 flex flex-col gap-1 text-sm text-milk-50/70">
+              {openingHours.map((slot) => (
+                <li key={slot.label}>
+                  {slot.label}: {formatTime(slot.opens)}–{formatTime(slot.closes)}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-           <div className="flex flex-col sm:flex-row justify-between text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 gap-2">
-              <p>© {new Date().getFullYear()} {siteConfig.name}</p>
-              <p>Made with 🔥 in Indonesia</p>
-           </div>
-        </Container>
+          <div>
+            <h3 className="mb-4 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">Ikuti kami</h3>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <a
+                  href={social.instagram.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 text-milk-50/80 transition-colors hover:text-caramel-300"
+                >
+                  <span className="grid size-11 place-items-center rounded-full ring-1 ring-milk-50/15 transition-colors group-hover:bg-caramel-600 group-hover:text-white group-hover:ring-caramel-600">
+                    <InstagramIcon className="size-5" />
+                  </span>
+                  {social.instagram.handle}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={social.tiktok.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 text-milk-50/80 transition-colors hover:text-caramel-300"
+                >
+                  <span className="grid size-11 place-items-center rounded-full ring-1 ring-milk-50/15 transition-colors group-hover:bg-caramel-600 group-hover:text-white group-hover:ring-caramel-600">
+                    <TikTokIcon className="size-5" />
+                  </span>
+                  {social.tiktok.handle}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
 
-      </div>
+        {/* Wordmark raksasa */}
+        <p
+          aria-hidden="true"
+          className="mb-8 text-center font-display text-[clamp(3rem,13.5vw,14rem)] leading-[0.95] font-black tracking-[-0.05em] whitespace-nowrap select-none"
+        >
+          <span className="bg-gradient-to-b from-caramel-500 to-caramel-800 bg-clip-text text-transparent">Loka </span>
+          <span className="font-wonky bg-gradient-to-b from-caramel-300 to-caramel-700 bg-clip-text font-medium text-transparent italic">
+            Pudding
+          </span>
+        </p>
+
+        <div className="relative flex flex-col items-center justify-between gap-2 border-t border-milk-50/10 pt-6 text-xs font-semibold tracking-[0.14em] text-milk-50/60 uppercase sm:flex-row">
+          <p>
+            © {new Date().getFullYear()} {siteConfig.name}
+          </p>
+          <p className="inline-flex items-center gap-1.5">
+            Dibuat dengan <HeartIcon className="size-3.5 text-caramel-400" />
+            <span className="sr-only">cinta</span> di Indonesia
+          </p>
+        </div>
+      </Container>
     </footer>
   );
 }

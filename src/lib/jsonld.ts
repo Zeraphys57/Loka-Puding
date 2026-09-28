@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import { formatRupiah } from "@/lib/format";
 import { getMenuCategories, getMenuItems } from "@/lib/menu";
 
 /**
@@ -9,6 +10,11 @@ export function buildBusinessJsonLd(siteUrl: string) {
   const items = getMenuItems();
   const categories = getMenuCategories(items);
   const { address, geo, openingHours, social, whatsapp, maps } = siteConfig;
+  // Kisaran harga dihitung dari menu, jadi selalu sesuai saat menu bertambah
+  const prices = items.map((item) => item.price);
+  const priceRange = prices.length
+    ? `${formatRupiah(Math.min(...prices))} – ${formatRupiah(Math.max(...prices))}`
+    : undefined;
 
   return {
     "@context": "https://schema.org",
@@ -20,7 +26,7 @@ export function buildBusinessJsonLd(siteUrl: string) {
     image: `${siteUrl}/opengraph-image`,
     logo: `${siteUrl}/icon.svg`,
     telephone: `+${whatsapp.number}`,
-    priceRange: siteConfig.priceRange,
+    priceRange,
     servesCuisine: ["Dessert", "Puding"],
     currenciesAccepted: "IDR",
     address: {
@@ -52,7 +58,7 @@ export function buildBusinessJsonLd(siteUrl: string) {
             "@type": "MenuItem",
             name: item.name,
             description: item.description,
-            image: `${siteUrl}${item.image}`,
+            image: item.image ? `${siteUrl}${item.image}` : undefined,
             offers: {
               "@type": "Offer",
               price: item.price,

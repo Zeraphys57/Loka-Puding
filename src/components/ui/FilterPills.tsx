@@ -22,7 +22,7 @@ function measure(group: HTMLElement | null, id: string) {
 }
 
 /**
- * Tombol filter kategori. "Gumpalan" biru (indikator) meluncur kenyal ke tombol aktif.
+ * Tombol filter kategori. "Gumpalan" karamel (indikator) meluncur kenyal ke tombol aktif.
  * Indikator berada di antara latar tombol dan teksnya (lihat z-index).
  */
 export function FilterPills({ options, active, onChange, label }: FilterPillsProps) {
@@ -76,7 +76,7 @@ export function FilterPills({ options, active, onChange, label }: FilterPillsPro
       <span
         ref={indicatorRef}
         aria-hidden="true"
-        className="invisible absolute top-0 left-0 z-[1] rounded-full bg-[#c27a29] shadow-soft"
+        className="invisible absolute top-0 left-0 z-[1] rounded-full bg-caramel-600 shadow-soft"
       />
       {options.map((option) => {
         const isActive = option.id === active;
@@ -88,8 +88,8 @@ export function FilterPills({ options, active, onChange, label }: FilterPillsPro
             aria-pressed={isActive}
             onClick={() => onChange(option.id)}
             className={cn(
-              "h-11 rounded-full bg-white px-6 text-sm font-bold tracking-widest uppercase border border-[#c27a29]/20 transition-all duration-300 sm:text-xs",
-              isActive ? "text-white border-transparent" : "text-ink-muted hover:text-[#c27a29] hover:bg-[#ffebd6]/20 hover:border-[#c27a29]/40",
+              "h-11 rounded-full border border-sand bg-milk-50 px-6 text-sm font-bold tracking-[0.14em] uppercase transition-colors duration-300",
+              isActive ? "border-transparent text-white" : "text-ink-muted hover:border-caramel-300 hover:bg-caramel-50 hover:text-caramel-700",
             )}
           >
             <span className="relative z-[2]">{option.label}</span>

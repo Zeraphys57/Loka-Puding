@@ -3,9 +3,9 @@ import { cn } from "@/lib/cn";
 type BadgeTone = "accent" | "primary" | "muted";
 
 const tones: Record<BadgeTone, string> = {
-  accent: "bg-accent text-ink",
-  primary: "bg-primary text-white",
-  muted: "bg-ink/80 text-white",
+  accent: "bg-caramel-300 text-espresso",
+  primary: "bg-caramel-600 text-white",
+  muted: "bg-espresso/80 text-white",
 };
 
 export function Badge({
@@ -20,7 +20,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide shadow-sm",
+        "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-[0.12em] uppercase shadow-sticker",
         tones[tone],
         className,
       )}

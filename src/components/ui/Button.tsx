@@ -1,23 +1,28 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "accent" | "soft" | "outline" | "ghost";
+type Variant = "primary" | "dark" | "accent" | "soft" | "outline" | "light" | "ghost";
 type Size = "sm" | "md" | "lg";
 
 // Naik sedikit saat hover, mengecil saat ditekan, lalu memantul balik (ease-jelly).
 const base =
-  "relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold " +
+  "relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-full font-bold " +
   "transition-[translate,scale,background-color,border-color,color,box-shadow] duration-500 ease-jelly " +
   "hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96] active:duration-150 " +
   "disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-[1.2em] [&_svg]:shrink-0";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary text-white shadow-soft hover:bg-primary-strong",
-  accent: "bg-accent text-ink shadow-soft hover:bg-accent-strong",
-  soft: "bg-primary-soft text-primary hover:bg-[#cfe1ff]",
-  outline:
-    "border-2 border-primary/20 bg-white/80 text-primary hover:border-primary/45 hover:bg-white",
-  ghost: "text-ink hover:bg-primary-mist",
+  /** Karamel: aksi utama (teks putih 5.5:1) */
+  primary: "bg-caramel-600 text-white shadow-soft hover:bg-caramel-700",
+  /** Espresso: aksi utama alternatif di latar terang */
+  dark: "bg-espresso text-milk-50 shadow-pop hover:bg-espresso-800",
+  /** Toffee: sorotan di latar gelap/karamel */
+  accent: "bg-caramel-300 text-espresso shadow-soft hover:bg-caramel-200",
+  soft: "bg-caramel-100 text-caramel-700 hover:bg-caramel-200",
+  outline: "border-2 border-espresso/15 bg-milk-50/70 text-espresso hover:border-espresso/35 hover:bg-white",
+  /** Untuk latar gelap */
+  light: "bg-milk-50 text-espresso hover:bg-white",
+  ghost: "text-espresso hover:bg-caramel-50",
 };
 
 const sizes: Record<Size, string> = {

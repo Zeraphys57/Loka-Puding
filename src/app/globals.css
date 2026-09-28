@@ -7,21 +7,42 @@
 /* ------------------------------------------------------------------ */
 
 @theme {
-  /* Warna brand: biru & putih, plus satu aksen kuning lembut */
-  --color-primary: #1e4fd8;
-  --color-primary-strong: #173fb0;
-  --color-primary-soft: #dcebff;
-  --color-primary-mist: #eef5ff;
-  --color-cream: #fafcff;
-  --color-ink: #0b1b3f;
-  --color-ink-muted: #4a5b82;
-  --color-accent: #ffc94d;
-  --color-accent-strong: #f5b52e;
-  --color-line: #d6e4fb;
+  /* Palet diambil dari foto produk: susu, karamel, espresso (kontras sudah dicek WCAG AA) */
+  --color-milk: #fbf6ee;
+  --color-milk-50: #fffcf7;
+  --color-custard: #f4eadb;
+  --color-sand: #e8d8c1;
 
-  /* next/font mengisi --font-fredoka & --font-jakarta di <html> */
-  --font-display: var(--font-fredoka), ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --color-caramel-50: #fff4e4;
+  --color-caramel-100: #fbe6c8;
+  --color-caramel-200: #f4cf9a;
+  --color-caramel-300: #e9ae5e; /* toffee: sorotan, stiker (teks espresso di atasnya 8.5:1) */
+  --color-caramel-400: #d48a38;
+  --color-caramel-500: #bd6e23; /* karamel brand: teks besar & dekorasi saja (3.6:1) */
+  --color-caramel-600: #a0561a; /* tombol & link (teks putih 5.5:1, di atas susu 5.1:1) */
+  --color-caramel-700: #80420f; /* teks kecil berwarna (7.2:1) */
+  --color-caramel-800: #5e2f0b;
+
+  --color-espresso: #2b1a10;
+  --color-espresso-800: #3b2517;
+  --color-espresso-900: #1f140d;
+
+  /* Nama semantik (dipakai di seluruh komponen) */
+  --color-ink: var(--color-espresso);
+  --color-ink-muted: #6d5647;
+  --color-cream: var(--color-milk);
+  --color-primary: var(--color-caramel-600);
+  --color-primary-strong: var(--color-caramel-700);
+  --color-primary-soft: var(--color-caramel-100);
+  --color-primary-mist: var(--color-caramel-50);
+  --color-accent: var(--color-caramel-300);
+  --color-accent-strong: var(--color-caramel-400);
+  --color-line: var(--color-sand);
+
+  /* next/font mengisi variabel ini di <html> (lihat app/layout.tsx) */
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: var(--font-caveat), "Segoe Print", "Bradley Hand", cursive;
 
   /* Radius */
   --radius-card: 1.75rem;
@@ -30,6 +51,7 @@
   /* Easing */
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-silk: cubic-bezier(0.87, 0, 0.13, 1);
   /* Damped spring (ζ≈0.45): lewat sedikit lalu memantul pelan, seperti puding */
   --ease-jelly: linear(
     0, 0.147 5%, 0.463 10%, 0.792 15%, 1.04 20%, 1.173 25%, 1.205 30%,
@@ -38,10 +60,11 @@
     1.006 95%, 1
   );
 
-  /* Bayangan lembut kebiruan */
-  --shadow-soft: 0 12px 32px -16px rgb(30 79 216 / 0.35);
-  --shadow-card: 0 1px 2px rgb(11 27 63 / 0.05), 0 18px 40px -24px rgb(30 79 216 / 0.45);
-  --shadow-pop: 0 24px 60px -24px rgb(11 27 63 / 0.45);
+  /* Bayangan hangat kecokelatan */
+  --shadow-soft: 0 12px 32px -16px rgb(128 66 15 / 0.35);
+  --shadow-card: 0 1px 2px rgb(43 26 16 / 0.06), 0 18px 40px -24px rgb(128 66 15 / 0.45);
+  --shadow-pop: 0 24px 60px -24px rgb(43 26 16 / 0.45);
+  --shadow-sticker: 0 8px 18px -8px rgb(43 26 16 / 0.55);
 
   /* Animasi (keyframes di bawah) */
   --animate-rise: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -50,6 +73,10 @@
   /* `backwards`: setelah selesai, gaya elemen sendiri (mis. opacity-0) berlaku lagi */
   --animate-pop-in: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   --animate-draw: draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-marquee: marquee var(--marquee-duration, 36s) linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-spin-slow: spin 18s linear infinite;
+  --animate-wiggle: wiggle 2.6s ease-in-out infinite;
 }
 
 @keyframes pop-in {
@@ -127,6 +154,33 @@
   }
 }
 
+/* Pita teks berjalan: isi digandakan dua kali, jadi geser -50% = satu putaran mulus */
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(8deg);
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(var(--wiggle-from, -6deg));
+  }
+  50% {
+    transform: rotate(var(--wiggle-to, -2deg));
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /*  Base                                                               */
 /* ------------------------------------------------------------------ */
@@ -134,26 +188,31 @@
 @layer base {
   :root {
     --nav-h: 4.5rem;
-    --focus-ring: var(--color-primary);
+    --focus-ring: var(--color-caramel-600);
+    color-scheme: light;
   }
 
   html {
-    background-color: var(--color-cream);
+    background-color: var(--color-milk);
     color: var(--color-ink);
-    /* Hide scrollbar for premium immersive feel */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  html::-webkit-scrollbar {
-    display: none;
+    /* Scrollbar tipis bernuansa karamel (tetap terlihat: penanda posisi di halaman panjang) */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-caramel-400) var(--color-milk);
   }
 
   body {
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Fraunces "SOFT": sudut huruf membulat, kenyal seperti puding */
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-variation-settings: "SOFT" 100, "WONK" 0;
   }
 
   h1,
@@ -169,8 +228,8 @@
   }
 
   ::selection {
-    background-color: var(--color-primary-soft);
-    color: var(--color-ink);
+    background-color: var(--color-caramel-200);
+    color: var(--color-espresso);
   }
 
   /* Anchor tanpa Lenis tetap mendarat di bawah navbar */
@@ -194,9 +253,53 @@
   }
 }
 
-/* Area berlatar biru memakai cincin fokus kuning agar tetap terlihat */
+/* Area berlatar gelap/karamel memakai cincin fokus toffee agar tetap terlihat */
+.on-dark,
 .on-primary {
-  --focus-ring: var(--color-accent);
+  --focus-ring: var(--color-caramel-300);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Utilitas brand                                                     */
+/* ------------------------------------------------------------------ */
+
+/* Italic Fraunces yang "wonky" untuk kata aksen (Lumer, Nagih, rumahan…) */
+@utility font-wonky {
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+}
+
+/* Huruf garis luar saja (angka besar dekoratif). Warna garis = warna teks (text-*) */
+@utility text-outline {
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: var(--outline-width, 1.5px) currentColor;
+}
+
+/* Kotak-kotak taplak meja (seperti di foto produk), tanpa file gambar */
+@utility bg-gingham {
+  background-color: var(--gingham-base, var(--color-milk-50));
+  background-image:
+    linear-gradient(90deg, var(--gingham-ink, rgb(189 110 35 / 0.13)) 50%, transparent 50%),
+    linear-gradient(var(--gingham-ink, rgb(189 110 35 / 0.13)) 50%, transparent 50%);
+  background-size: var(--gingham-size, 26px) var(--gingham-size, 26px);
+}
+
+/* Butiran halus (tekstur kertas/foto) di atas warna latar */
+@utility bg-grain {
+  background-image: url("/textures/grain.png");
+  background-size: 180px 180px;
+}
+
+/* Tepi bawah berbentuk lelehan karamel (mask SVG berulang, proporsi tetap di layar mana pun) */
+@utility drip-mask {
+  -webkit-mask: var(--drip-mask) repeat-x left top / var(--drip-tile, 480px) 100%;
+  mask: var(--drip-mask) repeat-x left top / var(--drip-tile, 480px) 100%;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ------------------------------------------------------------------ */
