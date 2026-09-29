@@ -47,6 +47,18 @@ Kisaran harga untuk Google dihitung otomatis dari harga menu, jadi tidak perlu d
 
 ---
 
+## Mengganti warna website → `src/config/theme.ts`
+
+Ada dua palet: `"karamel"` (krem, karamel, espresso; yang dipakai sekarang) dan `"biru"` (biru pastel, diambil dari taplak gingham di foto menu). Ganti satu kata ini untuk berpindah:
+
+```ts
+export const palette: Palette = "karamel"; // atau "biru"
+```
+
+Nilai warnanya ada di `src/app/globals.css` (blok `@theme` untuk karamel, blok `[data-palette="biru"]` untuk biru). Warna produk (puding 3D, logo, navbar karamel, dan penampang puding di bagian Kisah Kami) sengaja tidak ikut berubah: pudingnya tetap karamel apa pun paletnya.
+
+---
+
 ## Mengubah menu → `src/data/menu.ts`
 
 Saat ini ada 3 menu: **Puding Karamel**, **Puding Karamel Topping Regal**, dan **Puding Karamel Topping Popcorn Karamel**. Setiap menu ditulis seperti ini:
@@ -159,6 +171,7 @@ src/
 │  ├─ three/            puding 3D (bentuk, material, fisika goyangan) + ilustrasi cadangan
 │  └─ providers/        smooth scroll (Lenis)
 ├─ config/site.ts       ← info bisnis
+├─ config/theme.ts      ← palet warna (biru / karamel)
 ├─ data/menu.ts         ← daftar menu
 └─ lib/                 fungsi bantu (format Rupiah, link WhatsApp, scroll, dll.)
 public/images/menu/     ← foto menu

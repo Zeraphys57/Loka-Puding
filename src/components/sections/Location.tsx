@@ -70,7 +70,7 @@ export function Location() {
       referrerPolicy="no-referrer-when-downgrade"
       tabIndex={-1}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 size-full border-0 [filter:sepia(0.35)_saturate(0.85)_contrast(1.05)]"
+      className="pointer-events-none absolute inset-0 size-full border-0 [filter:var(--map-filter)]"
     />
   );
 
@@ -79,12 +79,13 @@ export function Location() {
       ref={sectionRef}
       id="lokasi"
       aria-labelledby="lokasi-title"
+      data-nav-tone="dark"
       className="on-dark relative overflow-hidden bg-espresso-900 text-milk-50 lg:h-svh"
     >
       <div aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-60" />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 size-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(189_110_35/0.28),transparent)]"
+        className="pointer-events-none absolute top-1/2 left-1/2 size-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--color-caramel-500)_28%,transparent),transparent)]"
       />
 
       {/* Judul besar: di desktop menjadi layar pembuka sebelum peta terbuka */}

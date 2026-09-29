@@ -3,23 +3,24 @@ import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { HeartIcon, InstagramIcon, TikTokIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { Logo } from "@/components/ui/Logo";
+import { RevealFooter } from "@/components/ui/RevealFooter";
 import { navLinks, siteConfig } from "@/config/site";
 import { formatTime } from "@/lib/format";
 import { whatsappOrderLink } from "@/lib/whatsapp";
 
 /*
- * Footer "tersingkap": menempel di dasar layar (sticky) di belakang konten, lalu terlihat
- * saat section terakhir bergulir ke atas. Tingginya mengikuti isi, jadi aman di layar pendek.
+ * Footer "tersingkap": menempel (sticky) di belakang konten, lalu terlihat saat section terakhir
+ * bergulir ke atas. Footer yang lebih tinggi dari layar tetap terbaca utuh (lihat RevealFooter).
  */
 export function Footer() {
   const { social, address, openingHours } = siteConfig;
 
   return (
-    <footer className="on-dark sticky bottom-0 -z-10 overflow-hidden bg-espresso-900 text-milk-50">
+    <RevealFooter className="on-dark sticky -z-10 overflow-hidden bg-espresso-900 text-milk-50">
       <div aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-60" />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-40 left-1/2 size-[50rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(189_110_35/0.3),transparent)]"
+        className="pointer-events-none absolute -bottom-40 left-1/2 size-[50rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--color-caramel-500)_30%,transparent),transparent)]"
       />
 
       <Container className="relative pt-24 pb-8 sm:pt-28">
@@ -137,6 +138,6 @@ export function Footer() {
           </p>
         </div>
       </Container>
-    </footer>
+    </RevealFooter>
   );
 }

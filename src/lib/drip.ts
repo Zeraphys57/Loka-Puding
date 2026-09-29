@@ -12,6 +12,8 @@ type DripOptions = {
   band?: number;
   seed?: number;
   count?: number;
+  /** Pengali lebar tetesan (1 = normal, <1 = lebih ramping) */
+  thickness?: number;
 };
 
 function random(seed: number) {
@@ -22,11 +24,11 @@ function random(seed: number) {
   };
 }
 
-export function dripPath({ width = 480, height = 64, band = 10, seed = 11, count = 6 }: DripOptions = {}): string {
+export function dripPath({ width = 480, height = 64, band = 10, seed = 11, count = 6, thickness = 1 }: DripOptions = {}): string {
   const rand = random(seed);
   const slot = width / count;
   const drips = Array.from({ length: count }, (_, i) => {
-    const half = 7 + rand() * 9; // setengah lebar leher tetesan
+    const half = (7 + rand() * 9) * thickness; // setengah lebar leher tetesan
     const bulb = half * (0.62 + rand() * 0.25); // jari-jari ujung tetesan (lebih ramping dari lehernya)
     const length = band + 8 + Math.pow(rand(), 1.6) * (height - band - 12);
     const center = slot * i + half + 4 + rand() * (slot - 2 * half - 8);
