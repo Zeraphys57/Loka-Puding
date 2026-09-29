@@ -225,7 +225,7 @@ export function MenuBrowser({ items, categories, upcoming, instagram }: MenuBrow
                 <span aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-40" />
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute -top-24 -right-20 size-64 rounded-full bg-[radial-gradient(closest-side,rgb(212_138_56/0.35),transparent)]"
+                  className="pointer-events-none absolute -top-24 -right-20 size-64 rounded-full bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--color-caramel-400)_35%,transparent),transparent)]"
                 />
                 <span className="relative grid size-16 place-items-center rounded-full bg-caramel-600 text-white shadow-sticker transition-transform duration-500 ease-jelly group-hover:-rotate-12">
                   <InstagramIcon className="size-7" />

@@ -25,7 +25,7 @@ export function Hero() {
 
       <HeroBackdrop />
 
-      <div className="relative mx-auto flex min-h-svh w-full max-w-[90rem] flex-col px-4 pt-[calc(var(--nav-h)+0.75rem)] pb-10 sm:px-8 lg:pt-[calc(var(--nav-h)+0.25rem)] lg:pr-24 lg:pb-12 lg:pl-14">
+      <div className="relative mx-auto flex min-h-svh w-full max-w-[90rem] flex-col px-4 pt-[calc(var(--nav-h)+0.75rem)] pb-10 sm:px-8 lg:px-14 lg:pt-[calc(var(--nav-h)+0.25rem)] lg:pb-12">
         {/* Baris utama: teks kiri, puding, teks kanan */}
         <div className="relative grid flex-1 grid-cols-1 items-center lg:grid-cols-[1fr_auto_1fr]">
           <p

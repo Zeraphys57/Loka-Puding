@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Caveat, Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { siteConfig } from "@/config/site";
+import { palette, paletteColors } from "@/config/theme";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -64,13 +65,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbf6ee",
+  themeColor: paletteColors[palette].background,
   colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" className={`${fraunces.variable} ${jakarta.variable} ${caveat.variable}`}>
+    <html
+      lang="id"
+      data-palette={palette}
+      className={`${fraunces.variable} ${jakarta.variable} ${caveat.variable}`}
+    >
       <body className="font-sans">
         <a
           href="#konten"

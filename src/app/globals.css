@@ -27,6 +27,24 @@
   --color-espresso-800: #3b2517;
   --color-espresso-900: #1f140d;
 
+  /* Warna produk asli (puding, piring, taplak di foto). TIDAK ikut berganti palet:
+     dipakai untuk logo, navbar karamel, dan penampang puding di section Kisah Kami. */
+  --color-pudding-caramel-200: #ffd9a8; /* kilau: teks besar di atas karamel (≥3.2:1) */
+  --color-pudding-caramel-300: #e2a765;
+  --color-pudding-caramel-500: #b0692c;
+  --color-pudding-caramel-600: #97541f; /* teks krem di atasnya 5.3:1 */
+  --color-pudding-caramel-700: #7a4016;
+  --color-pudding-caramel-800: #5a2c0d; /* pita gelap di dasar lapisan karamel */
+  --color-pudding-caramel-900: #3f1e08;
+  --color-pudding-cream: #fff3e0;
+  --color-pudding-milk: #f7efdf;
+  --color-pudding-milk-deep: #ecdcbf;
+  --color-pudding-ink: #2b1a10;
+  --color-pudding-ink-muted: #6b5443; /* di atas lapisan susu 5.6:1 */
+  --color-saucer: #e6ddce;
+  --color-saucer-deep: #cdbfa9;
+  --color-saucer-speck: #8a7560;
+
   /* Nama semantik (dipakai di seluruh komponen) */
   --color-ink: var(--color-espresso);
   --color-ink-muted: #6d5647;
@@ -60,11 +78,13 @@
     1.006 95%, 1
   );
 
-  /* Bayangan hangat kecokelatan */
-  --shadow-soft: 0 12px 32px -16px rgb(128 66 15 / 0.35);
-  --shadow-card: 0 1px 2px rgb(43 26 16 / 0.06), 0 18px 40px -24px rgb(128 66 15 / 0.45);
-  --shadow-pop: 0 24px 60px -24px rgb(43 26 16 / 0.45);
-  --shadow-sticker: 0 8px 18px -8px rgb(43 26 16 / 0.55);
+  /* Bayangan diwarnai palet aktif (karamel → kecokelatan, biru → kebiruan) */
+  --shadow-soft: 0 12px 32px -16px color-mix(in srgb, var(--color-caramel-700) 35%, transparent);
+  --shadow-card:
+    0 1px 2px color-mix(in srgb, var(--color-espresso) 6%, transparent),
+    0 18px 40px -24px color-mix(in srgb, var(--color-caramel-700) 45%, transparent);
+  --shadow-pop: 0 24px 60px -24px color-mix(in srgb, var(--color-espresso) 45%, transparent);
+  --shadow-sticker: 0 8px 18px -8px color-mix(in srgb, var(--color-espresso) 55%, transparent);
 
   /* Animasi (keyframes di bawah) */
   --animate-rise: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -73,10 +93,47 @@
   /* `backwards`: setelah selesai, gaya elemen sendiri (mis. opacity-0) berlaku lagi */
   --animate-pop-in: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   --animate-draw: draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  --animate-marquee: marquee var(--marquee-duration, 36s) linear infinite;
   --animate-float: float 7s ease-in-out infinite;
+  /* Tetes karamel yang lepas dari navbar: menggembung, putus, lalu jatuh (dipercepat gravitasi) */
+  --animate-drip-fall: drip-fall 1.5s cubic-bezier(0.55, 0, 0.85, 0.45) both;
+  /* Gelembung udara di dalam puding naik pelan */
+  --animate-bubble: bubble 9s ease-in-out infinite;
   --animate-spin-slow: spin 18s linear infinite;
   --animate-wiggle: wiggle 2.6s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Palet alternatif "biru pastel" (tidak aktif; palet utama karamel)  */
+/*  Diambil dari taplak gingham biru di foto produk. Aktif lewat       */
+/*  <html data-palette="biru">; pindah palet di src/config/theme.ts.   */
+/*  Nama token sengaja tetap (caramel-*, milk, espresso) supaya bisa   */
+/*  kembali ke karamel cukup dengan mengganti satu kata.               */
+/*  Warna produk (pudding-*, saucer-*) tidak ikut berubah.             */
+/* ------------------------------------------------------------------ */
+
+[data-palette="biru"] {
+  --color-milk: #f3f7fc;
+  --color-milk-50: #fbfdff;
+  --color-custard: #e5edf8;
+  --color-sand: #d0deef;
+
+  --color-caramel-50: #eff5fd;
+  --color-caramel-100: #dde9f8;
+  --color-caramel-200: #c3d7f0;
+  --color-caramel-300: #a3c0e6; /* biru taplak: sorotan (teks navy di atasnya 7.6:1) */
+  --color-caramel-400: #7aa0d3;
+  --color-caramel-500: #5580bd; /* teks besar & dekorasi (3.7:1) */
+  --color-caramel-600: #3c66a3; /* tombol (teks putih 5.7:1) */
+  --color-caramel-700: #2d4f87; /* teks kecil berwarna (7.4:1) */
+  --color-caramel-800: #203a64;
+
+  --color-espresso: #1b2a45;
+  --color-espresso-800: #243757;
+  --color-espresso-900: #121d33;
+  --color-ink-muted: #55647d;
+
+  --gingham-tone: color-mix(in srgb, var(--color-caramel-400) 24%, transparent);
+  --map-filter: grayscale(0.4) contrast(1.05);
 }
 
 @keyframes pop-in {
@@ -154,10 +211,36 @@
   }
 }
 
-/* Pita teks berjalan: isi digandakan dua kali, jadi geser -50% = satu putaran mulus */
-@keyframes marquee {
-  to {
-    transform: translate3d(-50%, 0, 0);
+/* Tetap pekat sampai hampir akhir: filter "goo" memotong bentuk yang transparan, jadi memudar terlalu dini
+   membuat tetesan hilang sebelum sempat terlihat jatuh */
+@keyframes drip-fall {
+  0% {
+    transform: translateY(0) scale(0.55);
+  }
+  30% {
+    transform: translateY(5px) scale(1, 1.2);
+  }
+  55% {
+    transform: translateY(17px) scale(0.92, 1.15);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(54px) scale(0.85);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(80px) scale(0.7);
+    opacity: 0;
+  }
+}
+
+@keyframes bubble {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(6px, -22px);
   }
 }
 
@@ -189,6 +272,9 @@
   :root {
     --nav-h: 4.5rem;
     --focus-ring: var(--color-caramel-600);
+    /* Garis taplak kotak-kotak & warna peta; palet lain boleh menimpanya */
+    --gingham-tone: color-mix(in srgb, var(--color-caramel-500) 13%, transparent);
+    --map-filter: sepia(0.35) saturate(0.85) contrast(1.05);
     color-scheme: light;
   }
 
@@ -278,9 +364,19 @@
 @utility bg-gingham {
   background-color: var(--gingham-base, var(--color-milk-50));
   background-image:
-    linear-gradient(90deg, var(--gingham-ink, rgb(189 110 35 / 0.13)) 50%, transparent 50%),
-    linear-gradient(var(--gingham-ink, rgb(189 110 35 / 0.13)) 50%, transparent 50%);
+    linear-gradient(90deg, var(--gingham-ink, var(--gingham-tone)) 50%, transparent 50%),
+    linear-gradient(var(--gingham-ink, var(--gingham-tone)) 50%, transparent 50%);
   background-size: var(--gingham-size, 26px) var(--gingham-size, 26px);
+}
+
+/* Bintik-bintik keramik stoneware (piring di foto produk) */
+@utility bg-speckle {
+  background-color: var(--color-saucer);
+  background-image:
+    radial-gradient(circle at 20% 30%, var(--color-saucer-speck) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 70% 65%, var(--color-saucer-speck) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 45% 85%, rgb(138 117 96 / 0.55) 0 0.8px, transparent 1.4px);
+  background-size: 23px 19px, 41px 31px, 17px 13px;
 }
 
 /* Butiran halus (tekstur kertas/foto) di atas warna latar */

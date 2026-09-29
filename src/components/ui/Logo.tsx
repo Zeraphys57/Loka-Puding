@@ -12,7 +12,10 @@ type PuddingMarkProps = {
   id?: string;
 };
 
-/** Ikon puding dua lapis: susu di bawah, karamel meleleh di atas. Dipakai di navbar & footer. */
+/**
+ * Ikon puding dua lapis: susu di bawah, karamel meleleh di atas. Dipakai di navbar & footer.
+ * Memakai warna produk (pudding-*), jadi tetap karamel apa pun palet website-nya.
+ */
 export function PuddingMark({ className, id = "mark" }: PuddingMarkProps) {
   const clip = `${id}-clip`;
   return (
@@ -22,47 +25,49 @@ export function PuddingMark({ className, id = "mark" }: PuddingMarkProps) {
           <path d={BODY} />
         </clipPath>
       </defs>
-      <ellipse cx="24" cy="40.6" rx="20.5" ry="4.4" className="fill-sand" />
-      <ellipse cx="24" cy="39.9" rx="15.5" ry="2.3" className="fill-custard" />
-      <path d={BODY} className="fill-milk-50" />
+      <ellipse cx="24" cy="40.6" rx="20.5" ry="4.4" className="fill-saucer-deep" />
+      <ellipse cx="24" cy="39.9" rx="15.5" ry="2.3" className="fill-saucer" />
+      <path d={BODY} className="fill-pudding-milk" />
       <g clipPath={`url(#${clip})`}>
-        <path d={CARAMEL} className="fill-caramel-600" />
-        <path d="M4 22.6h40" className="stroke-caramel-800/40" strokeWidth="2.4" />
+        <path d={CARAMEL} className="fill-pudding-caramel-600" />
+        <path d="M4 22.6h40" className="stroke-pudding-caramel-900/40" strokeWidth="2.4" />
       </g>
-      <path d={BODY} fill="none" className="stroke-caramel-800" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d={BODY} fill="none" className="stroke-pudding-caramel-800" strokeWidth="1.7" strokeLinejoin="round" />
       <path d="M18.6 16.6c.9-1.1 2.3-1.7 4.2-1.9" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" opacity=".75" />
       <path d="M15.4 29.5c-.4 2.2-.6 4.3-.7 6.2" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" opacity=".9" />
     </svg>
   );
 }
 
+type LogoTone = "default" | "light" | "cream";
+
+// [kata "Loka", kata "Pudding"] per latar
+const LOGO_TEXT: Record<LogoTone, [string, string]> = {
+  /** Latar terang */
+  default: ["text-espresso", "text-caramel-600"],
+  /** Latar gelap (navy/espresso) */
+  light: ["text-milk-50", "text-caramel-300"],
+  /** Di atas lapisan karamel (warna produk) */
+  cream: ["text-pudding-cream", "text-pudding-caramel-200"],
+};
+
 /**
  * Logo teks "Loka Pudding". Letakkan di dalam elemen ber-class `group/logo`
- * agar ikonnya bergoyang saat hover. `tone="light"` untuk latar gelap.
+ * agar ikonnya bergoyang saat hover. `tone="light"` untuk latar gelap, `"cream"` di atas karamel.
  */
-export function Logo({
-  className,
-  tone = "default",
-  id,
-}: {
-  className?: string;
-  tone?: "default" | "light";
-  id?: string;
-}) {
-  const light = tone === "light";
+export function Logo({ className, tone = "default", id }: { className?: string; tone?: LogoTone; id?: string }) {
+  const [loka, pudding] = LOGO_TEXT[tone];
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <PuddingMark id={id} className="size-9 shrink-0 origin-bottom group-hover/logo:animate-jiggle-tap" />
       <span
         className={cn(
-          "font-display text-[1.4rem] leading-none font-bold tracking-tight whitespace-nowrap",
-          light ? "text-milk-50" : "text-espresso",
+          "font-display text-[1.4rem] leading-none font-bold tracking-tight whitespace-nowrap transition-colors duration-500",
+          loka,
         )}
       >
         Loka{" "}
-        <span className={cn("font-wonky font-semibold italic", light ? "text-caramel-300" : "text-caramel-600")}>
-          Pudding
-        </span>
+        <span className={cn("font-wonky font-semibold italic transition-colors duration-500", pudding)}>Pudding</span>
       </span>
     </span>
   );
