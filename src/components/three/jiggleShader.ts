@@ -80,20 +80,54 @@ vec3 jiggleNormal(vec3 p, vec3 n, vec3 deformed) {
 }
 `;
 
+// Topping keras (biskuit, remahan, popcorn): tiap potongan punya titik tempel (aAnchor).
+// Potongan ikut berpindah & miring bersama puding di titik itu, tapi bentuknya sendiri tidak ikut
+// memendek/melebar: benda keras tidak bisa di-squash.
+const RIGID_GLSL = /* glsl */ `
+attribute vec3 aAnchor;
+
+vec3 jiggleRigid(vec3 p, vec3 anchor, out vec2 tilt) {
+  vec2 a = 8.0 * uMid - uTop;
+  vec2 b = 2.0 * uTop - 8.0 * uMid;
+  // Kemiringan puncak puding per satuan tinggi (turunan lengkung samping di h = 1)
+  tilt = (2.0 * a + 3.0 * b) / uHeight;
+  // Lekukan colekan menekan titik tempel ke bawah (bukan menyusutkan potongannya)
+  vec3 base = jiggleDeform(anchor, vec3(0.0, 1.0, 0.0));
+  vec3 local = p - anchor;
+  return base + local + vec3(tilt.x, 0.0, tilt.y) * local.y;
+}
+`;
+
+const SOFT_VERTEX = /* glsl */ `#include <beginnormal_vertex>
+vec3 jiggledPosition = jiggleDeform(position, objectNormal);
+objectNormal = jiggleNormal(position, objectNormal, jiggledPosition);`;
+
+// Transformasinya afin (geser + miring), jadi normal cukup dikali invers-transpos matriks miringnya
+const RIGID_VERTEX = /* glsl */ `#include <beginnormal_vertex>
+vec2 lokaTilt;
+vec3 jiggledPosition = jiggleRigid(position, aAnchor, lokaTilt);
+objectNormal = normalize(vec3(
+  objectNormal.x,
+  objectNormal.y - lokaTilt.x * objectNormal.x - lokaTilt.y * objectNormal.z,
+  objectNormal.z
+));`;
+
+type JiggleOptions = {
+  /** Tekstur permukaan prosedural (lihat surfaceDetail.ts) */
+  surface?: SurfaceOptions;
+  /** Topping keras: geometri wajib punya atribut `aAnchor` (titik tempel tiap potongan) */
+  rigid?: boolean;
+};
+
 /**
  * Pasang deformasi jiggle pada material (sebelum material pertama kali dikompilasi),
- * opsional sekaligus tekstur permukaannya (lihat surfaceDetail.ts).
+ * opsional sekaligus tekstur permukaannya.
  */
-export function applyJiggle<T extends Material>(material: T, uniforms: JiggleUniforms, surface?: SurfaceOptions): T {
+export function applyJiggle<T extends Material>(material: T, uniforms: JiggleUniforms, { surface, rigid = false }: JiggleOptions = {}): T {
   material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = DEFORM_GLSL + shader.vertexShader
-      .replace(
-        "#include <beginnormal_vertex>",
-        `#include <beginnormal_vertex>
-        vec3 jiggledPosition = jiggleDeform(position, objectNormal);
-        objectNormal = jiggleNormal(position, objectNormal, jiggledPosition);`,
-      )
+    shader.vertexShader = DEFORM_GLSL + (rigid ? RIGID_GLSL : "") + shader.vertexShader
+      .replace("#include <beginnormal_vertex>", rigid ? RIGID_VERTEX : SOFT_VERTEX)
       .replace(
         "#include <begin_vertex>",
         `#include <begin_vertex>
@@ -101,6 +135,6 @@ export function applyJiggle<T extends Material>(material: T, uniforms: JiggleUni
       );
     if (surface) injectSurface(shader, surface);
   };
-  material.customProgramCacheKey = () => `loka-jiggle-v2-${surface?.kind ?? "plain"}`;
+  material.customProgramCacheKey = () => `loka-jiggle-v2-${surface?.kind ?? "plain"}${rigid ? "-rigid" : ""}`;
   return material;
 }
