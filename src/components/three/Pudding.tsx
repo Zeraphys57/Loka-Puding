@@ -2,7 +2,7 @@
 
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Color, MeshPhysicalMaterial, Vector3 } from "three";
+import { Color, Mesh, MeshPhysicalMaterial, Vector3 } from "three";
 import { getLenis } from "@/lib/scroll";
 import { JIGGLE } from "./jiggle.config";
 import { applyJiggle, createJiggleUniforms, type JiggleUniforms } from "./jiggleShader";
@@ -10,6 +10,13 @@ import { createPuddingGeometries, disposeGeometries } from "./puddingGeometry";
 import { PUDDING_TOP_Y } from "./puddingProfile";
 import { JiggleSimulation } from "./springs";
 import { applySurface, createSurfaceUniforms, type SurfaceUniforms } from "./surfaceDetail";
+import type { ToppedVariant } from "./toppings";
+import { useToppings } from "./useToppings";
+import type { PuddingVariant } from "./variants";
+
+// Topping varian yang sedang tidak tampil tidak boleh ikut "dicolek" (raycast tetap mengenai objek tersembunyi)
+const NO_RAYCAST = () => {};
+const MESH_RAYCAST = Mesh.prototype.raycast;
 
 /*
  * Tekstur (pori, variasi warna, tonjolan mikro, bintik piring) dihitung prosedural di shader:
@@ -22,7 +29,7 @@ function createMaterials(uniforms: JiggleUniforms, surface: SurfaceUniforms) {
       roughness: 0.07, // licin mengilap seperti sirup gula yang mengeras
     }),
     uniforms,
-    { kind: "caramel", uniforms: surface },
+    { surface: { kind: "caramel", uniforms: surface } },
   );
   const milk = applyJiggle(
     new MeshPhysicalMaterial({
@@ -38,7 +45,7 @@ function createMaterials(uniforms: JiggleUniforms, surface: SurfaceUniforms) {
       emissiveIntensity: 0.24,
     }),
     uniforms,
-    { kind: "custard", uniforms: surface },
+    { surface: { kind: "custard", uniforms: surface } },
   );
   const plate = applySurface(
     new MeshPhysicalMaterial({
@@ -63,12 +70,14 @@ type PuddingProps = {
   pokeSignal: number;
   /** Perangkat kewalahan: tonjolan mikro dimatikan (warna & bintik tetap) */
   lowQuality: boolean;
+  /** Topping yang tampil (klasik = tanpa topping) */
+  variant: PuddingVariant;
 };
 
 /** Bagian yang berubah setiap frame. Disimpan di ref: tidak memicu render ulang React. */
 type LiveState = { uniforms: JiggleUniforms; surface: SurfaceUniforms; sim: JiggleSimulation };
 
-export function Pudding({ pokeSignal, lowQuality }: PuddingProps) {
+export function Pudding({ pokeSignal, lowQuality, variant }: PuddingProps) {
   // Aset GPU dibuat sekali; saat render hanya dibaca
   const assets = useMemo(() => {
     const uniforms = createJiggleUniforms(PUDDING_TOP_Y, JIGGLE.dent.radius);
@@ -76,6 +85,8 @@ export function Pudding({ pokeSignal, lowQuality }: PuddingProps) {
     return { uniforms, surface, geometries: createPuddingGeometries(), materials: createMaterials(uniforms, surface) };
   }, []);
   const { geometries, materials } = assets;
+  // Topping memakai uniform goyangan yang sama, jadi ikut bergoyang bersama pudingnya
+  const toppings = useToppings(variant, assets.uniforms);
 
   const live = useRef<LiveState | null>(null);
   const hover = useRef({ active: false, leanX: 0, leanZ: 0, lastX: 0, lastZ: 0, tracking: false });
@@ -210,6 +221,30 @@ export function Pudding({ pokeSignal, lowQuality }: PuddingProps) {
       >
         <mesh geometry={geometries.milk} material={materials.milk} dispose={null} />
         <mesh geometry={geometries.caramel} material={materials.caramel} dispose={null} />
+
+        {/* Topping varian yang sudah disiapkan; hanya yang aktif yang terlihat & bisa dicolek */}
+        {(Object.keys(toppings.sets) as ToppedVariant[]).map((target) => {
+          const active = target === variant;
+          return (
+            <group
+              key={target}
+              visible={active}
+              ref={(group) => {
+                toppings.groups.current[target] = group;
+              }}
+            >
+              {toppings.sets[target]?.parts.map((part, index) => (
+                <mesh
+                  key={index}
+                  geometry={part.geometry}
+                  material={part.material}
+                  raycast={active ? MESH_RAYCAST : NO_RAYCAST}
+                  dispose={null}
+                />
+              ))}
+            </group>
+          );
+        })}
       </group>
       <mesh geometry={geometries.plate} material={materials.plate} dispose={null} />
       <mesh geometry={geometries.plateRim} material={materials.plateRim} dispose={null} />

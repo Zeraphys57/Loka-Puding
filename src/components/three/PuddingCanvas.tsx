@@ -10,6 +10,7 @@ import { NeutralToneMapping } from "three";
 import { Pudding } from "./Pudding";
 import { CAMERA } from "./puddingProfile";
 import { StudioEnvironment } from "./StudioEnvironment";
+import type { PuddingVariant } from "./variants";
 
 // Neutral tone mapping menjaga warna karamel & susu (ACES cenderung menggeser hue)
 const GL_OPTIONS = {
@@ -68,9 +69,10 @@ export type PuddingCanvasProps = {
   onReady: () => void;
   /** Perangkat tidak sanggup menjaga ±30 fps bahkan di kualitas terendah */
   onUnsupported: () => void;
+  variant: PuddingVariant;
 };
 
-export default function PuddingCanvas({ active, pokeSignal, onReady, onUnsupported }: PuddingCanvasProps) {
+export default function PuddingCanvas({ active, pokeSignal, onReady, onUnsupported, variant }: PuddingCanvasProps) {
   const [compiled, setCompiled] = useState(false);
   const [maxDpr] = useState(() => Math.min(window.devicePixelRatio || 1, MAX_DPR));
   const [dpr, setDpr] = useState(maxDpr);
@@ -109,7 +111,7 @@ export default function PuddingCanvas({ active, pokeSignal, onReady, onUnsupport
       <hemisphereLight args={["#ffffff", "#e6cfb3", 0.35]} />
       <directionalLight position={[-3, 5, 4]} intensity={1.1} />
 
-      <Pudding pokeSignal={pokeSignal} lowQuality={lowQuality} />
+      <Pudding pokeSignal={pokeSignal} lowQuality={lowQuality} variant={variant} />
 
       {/* Bayangan lembut di bawah piring. Dirender sekali saja karena dasar puding tidak bergerak. */}
       <ContactShadows

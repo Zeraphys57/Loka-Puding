@@ -1,10 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/cn";
 import { detect3DSupport } from "@/lib/device";
+import { isPuddingVariant, type PuddingVariant } from "./variants";
 
 // three.js hanya diunduh jika perangkat lolos pemeriksaan (lihat lib/device.ts)
 const PuddingCanvas = dynamic(() => import("./PuddingCanvas"), { ssr: false });
@@ -20,6 +21,14 @@ const POKE_KEYFRAMES: Keyframe[] = [
   { transform: "scale(1, 1)" },
 ];
 
+// Varian bisa dipilih lewat URL, mis. `?varian=regal` atau `?varian=popcorn` (untuk pratinjau & link langsung)
+const noSubscribe = () => () => {};
+const readUrlVariant = (): PuddingVariant => {
+  const value = new URLSearchParams(window.location.search).get("varian");
+  return isPuddingVariant(value) ? value : "klasik";
+};
+const serverVariant = (): PuddingVariant => "klasik";
+
 type PuddingStageProps = {
   /** Ilustrasi SVG (dirender di server): tampil sejak awal & jadi cadangan permanen */
   fallback: ReactNode;
@@ -27,6 +36,7 @@ type PuddingStageProps = {
 
 export function PuddingStage({ fallback }: PuddingStageProps) {
   const reducedMotion = useReducedMotion();
+  const variant = useSyncExternalStore(noSubscribe, readUrlVariant, serverVariant);
   const stageRef = useRef<HTMLDivElement>(null);
   const [capable, setCapable] = useState(false);
   const [unsupported, setUnsupported] = useState(false);
@@ -111,6 +121,7 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
               pokeSignal={pokeSignal}
               onReady={handleReady}
               onUnsupported={handleUnsupported}
+              variant={variant}
             />
           </div>
         ) : null}
