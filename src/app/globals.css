@@ -93,6 +93,8 @@
   /* `backwards`: setelah selesai, gaya elemen sendiri (mis. opacity-0) berlaku lagi */
   --animate-pop-in: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   --animate-draw: draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  /* Teks muncul dari kiri ke kanan, seperti sedang ditulis tangan */
+  --animate-write: write 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) both;
   --animate-float: float 7s ease-in-out infinite;
   /* Tetes karamel yang lepas dari navbar: menggembung, putus, lalu jatuh (dipercepat gravitasi) */
   --animate-drip-fall: drip-fall 1.5s cubic-bezier(0.55, 0, 0.85, 0.45) both;
@@ -151,6 +153,16 @@
 @keyframes draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+/* Inset negatif supaya ekor & lengkung huruf tulisan tangan tidak terpotong */
+@keyframes write {
+  from {
+    clip-path: inset(-50% 100% -50% -15%);
+  }
+  to {
+    clip-path: inset(-50% -15% -50% -15%);
   }
 }
 

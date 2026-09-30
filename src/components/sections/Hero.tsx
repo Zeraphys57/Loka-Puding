@@ -2,7 +2,6 @@ import { HeroOrderButton, HeroPudding, HeroVariantTabs } from "@/components/sect
 import { HERO_VARIANTS, VARIANT_INFO, type HeroVariantItem } from "@/components/three/variants";
 import { ButtonLink } from "@/components/ui/Button";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { HandNote } from "@/components/ui/HandNote";
 import { ArrowDownIcon } from "@/components/ui/Icons";
 import { getMenuItems } from "@/lib/menu";
 import { whatsappItemLink } from "@/lib/whatsapp";
@@ -17,14 +16,14 @@ const WORD = "block font-display font-black leading-[0.82] tracking-[-0.035em] t
 const ACCENT =
   "block font-display font-wonky font-medium italic leading-[0.9] tracking-[-0.02em] text-caramel-500 normal-case";
 
-/** Satu entri per varian puding (Klasik, Regal, Popcorn): nama, harga, catatan & link pesan dari data menu. */
+/** Satu entri per varian puding (Klasik, Regal, Popcorn): nama, catatan & link pesan dari data menu. */
 function getHeroItems(): HeroVariantItem[] {
   const menu = getMenuItems();
   return HERO_VARIANTS.flatMap((variant) => {
     const { menuId, short, alt } = VARIANT_INFO[variant];
     const item = menu.find((entry) => entry.id === menuId);
     return item
-      ? [{ variant, short, alt, name: item.name, priceLabel: item.priceLabel, note: item.note, orderHref: whatsappItemLink(item) }]
+      ? [{ variant, short, alt, name: item.name, note: item.note, orderHref: whatsappItemLink(item) }]
       : [];
   });
 }
@@ -62,16 +61,9 @@ export function Hero() {
           {/* Puding 3D (atau ilustrasi): bisa digeser untuk melihat varian lain */}
           <div className="relative z-10 mx-auto w-[min(100%,25rem,44svh)] sm:w-[min(100%,30rem,48svh)] lg:w-[min(40vw,60svh,42rem)]">
             <HeroPudding items={heroItems} />
-            <HandNote
-              arrow="up-right"
-              arrowSide="end"
-              className="absolute bottom-[9%] -left-1 -rotate-6 text-[1.35rem] sm:left-[2%] sm:text-[1.6rem] lg:bottom-[12%] lg:-left-[6%] lg:text-[1.85rem]"
-            >
-              colek aku!
-            </HandNote>
             <HeroVariantTabs
               items={heroItems}
-              className="absolute -bottom-3 left-1/2 z-20 hidden -translate-x-1/2 animate-rise [animation-delay:650ms] lg:flex"
+              className="absolute top-full left-1/2 z-20 -mt-8 hidden -translate-x-1/2 animate-rise [animation-delay:650ms] lg:flex"
             />
           </div>
 
@@ -114,7 +106,7 @@ export function Hero() {
         {/* HP & tablet: pilihan varian di bawah judul (di desktop letaknya tepat di bawah puding) */}
         <HeroVariantTabs
           items={heroItems}
-          className="relative z-20 mt-6 flex justify-center animate-rise [animation-delay:350ms] lg:hidden"
+          className="relative z-20 mt-4 flex justify-center animate-rise [animation-delay:350ms] lg:hidden"
         />
 
         {/* Baris bawah: cerita singkat + tombol */}
@@ -159,7 +151,7 @@ function HeroBackdrop() {
       {/* Tetesan karamel yang melayang */}
       <span className="absolute top-[24%] left-[7%] hidden size-7 animate-float rounded-[45%_55%_60%_40%] bg-gradient-to-br from-caramel-300 to-caramel-600 opacity-60 motion-reduce:animate-none lg:block" />
       <span className="absolute top-[70%] right-[12%] hidden size-10 animate-float rounded-[60%_40%_45%_55%] bg-gradient-to-br from-caramel-200 to-caramel-500 opacity-50 [animation-delay:-3s] motion-reduce:animate-none sm:block" />
-      <span className="absolute bottom-[20%] left-[42%] hidden size-3 rounded-full bg-caramel-400/50 lg:block" />
+      <span className="absolute bottom-[17%] left-[36%] hidden size-3 rounded-full bg-caramel-400/50 lg:block" />
 
       {/* Stiker berputar */}
       <div className="absolute top-[13%] right-[8%] hidden size-32 animate-spin-slow text-caramel-600 motion-reduce:animate-none lg:block xl:right-[11%]">
