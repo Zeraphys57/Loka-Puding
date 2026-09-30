@@ -48,6 +48,8 @@ export const JIGGLE = {
     hoverDrag: 0.6,
     /** Pengali perubahan kecepatan scroll (px/detik) */
     scroll: 0.00024,
+    /** Dorongan saat puding meluncur masuk setelah berganti varian (digeser) */
+    slide: 2.4,
   },
 
   /** "Napas" halus saat diam */

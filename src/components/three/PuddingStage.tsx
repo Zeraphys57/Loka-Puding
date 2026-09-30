@@ -1,42 +1,76 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/cn";
 import { detect3DSupport } from "@/lib/device";
-import { isPuddingVariant, type PuddingVariant } from "./variants";
+import { PuddingFallback } from "./PuddingFallback";
+import type { PuddingVariant } from "./variants";
 
 // three.js hanya diunduh jika perangkat lolos pemeriksaan (lihat lib/device.ts)
 const PuddingCanvas = dynamic(() => import("./PuddingCanvas"), { ssr: false });
 
-/** Squash & stretch kenyal untuk ilustrasi statis (Web Animations API, bisa diulang tiap dicolek). */
-const POKE_KEYFRAMES: Keyframe[] = [
-  { transform: "scale(1, 1)" },
-  { transform: "scale(1.09, 0.89)", offset: 0.14 },
-  { transform: "scale(0.94, 1.07)", offset: 0.3 },
-  { transform: "scale(1.04, 0.97)", offset: 0.48 },
-  { transform: "scale(0.985, 1.015)", offset: 0.66 },
-  { transform: "scale(1.005, 0.995)", offset: 0.84 },
-  { transform: "scale(1, 1)" },
+/** Squash & stretch kenyal untuk ilustrasi statis: [offset, skala x, skala y]. Bisa diulang tiap dicolek. */
+const POKE: readonly (readonly [number, number, number])[] = [
+  [0, 1, 1],
+  [0.14, 1.09, 0.89],
+  [0.3, 0.94, 1.07],
+  [0.48, 1.04, 0.97],
+  [0.66, 0.985, 1.015],
+  [0.84, 1.005, 0.995],
+  [1, 1, 1],
 ];
+const POKE_TIMING = { duration: 950, easing: "cubic-bezier(0.3, 0.7, 0.4, 1)" };
 
-// Varian bisa dipilih lewat URL, mis. `?varian=regal` atau `?varian=popcorn` (untuk pratinjau & link langsung)
-const noSubscribe = () => () => {};
-const readUrlVariant = (): PuddingVariant => {
-  const value = new URLSearchParams(window.location.search).get("varian");
-  return isPuddingVariant(value) ? value : "klasik";
-};
-const serverVariant = (): PuddingVariant => "klasik";
+/** Goyangan ke samping (derajat miring) saat puding didorong; dikali arah & kekuatan dorongan. */
+const SWAY = [0, -7, 5, -2.5, 1, 0];
+const SWAY_TIMING = { duration: 900, easing: "ease-out" };
+
+/**
+ * Goyangkan ilustrasi statis. Badan puding memendek/miring; topping (benda padat) tidak ikut gepeng,
+ * hanya ikut bergeser bersama puncak puding.
+ */
+function jiggleFallback(stage: HTMLElement | null, nudgeX?: number) {
+  const body = stage?.querySelector<SVGGElement>("[data-jiggle]");
+  if (!body) return;
+  const topping = stage?.querySelector<SVGGElement>("[data-topping]");
+  // Poros goyangan di dasar puding, jadi puncaknya bergeser sejauh tinggi puding × perubahan skala/miring
+  const height = body.getBBox().height;
+
+  if (nudgeX === undefined) {
+    body.animate(
+      POKE.map(([offset, sx, sy]) => ({ offset, transform: `scale(${sx}, ${sy})` })),
+      POKE_TIMING,
+    );
+    topping?.animate(
+      POKE.map(([offset, , sy]) => ({ offset, transform: `translateY(${height * (1 - sy)}px)` })),
+      POKE_TIMING,
+    );
+    return;
+  }
+  body.animate(
+    SWAY.map((deg) => ({ transform: `skewX(${deg * nudgeX}deg)` })),
+    SWAY_TIMING,
+  );
+  topping?.animate(
+    SWAY.map((deg) => ({ transform: `translateX(${-height * Math.tan((deg * nudgeX * Math.PI) / 180)}px)` })),
+    SWAY_TIMING,
+  );
+}
+
+/** Dorongan ke samping, mis. saat puding meluncur masuk setelah berganti varian. `id` baru = dorongan baru. */
+export type Nudge = { id: number; x: number };
 
 type PuddingStageProps = {
-  /** Ilustrasi SVG (dirender di server): tampil sejak awal & jadi cadangan permanen */
-  fallback: ReactNode;
+  variant: PuddingVariant;
+  /** Teks alternatif untuk puding yang sedang tampil */
+  label: string;
+  nudge?: Nudge;
 };
 
-export function PuddingStage({ fallback }: PuddingStageProps) {
+export function PuddingStage({ variant, label, nudge }: PuddingStageProps) {
   const reducedMotion = useReducedMotion();
-  const variant = useSyncExternalStore(noSubscribe, readUrlVariant, serverVariant);
   const stageRef = useRef<HTMLDivElement>(null);
   const [capable, setCapable] = useState(false);
   const [unsupported, setUnsupported] = useState(false);
@@ -77,6 +111,12 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
     return () => observer.disconnect();
   }, []);
 
+  // Ilustrasi statis ikut bergoyang saat didorong (versi 3D menanganinya sendiri lewat simulasi pegas)
+  useEffect(() => {
+    if (!nudge?.id || live3D || reducedMotion) return;
+    jiggleFallback(stageRef.current, nudge.x);
+  }, [nudge, live3D, reducedMotion]);
+
   const handleReady = useCallback(() => setReady(true), []);
   const handleUnsupported = useCallback(() => {
     setUnsupported(true);
@@ -84,10 +124,7 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
   }, []);
 
   const pokeFallback = () => {
-    if (reducedMotion) return;
-    stageRef.current
-      ?.querySelector<SVGGElement>("[data-jiggle]")
-      ?.animate(POKE_KEYFRAMES, { duration: 950, easing: "cubic-bezier(0.3, 0.7, 0.4, 1)" });
+    if (!reducedMotion) jiggleFallback(stageRef.current);
   };
 
   // Untuk pengguna keyboard: tombol yang baru terlihat saat difokus (Tab), mencolek puncak puding
@@ -98,7 +135,7 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
 
   return (
     <div ref={stageRef} className="relative aspect-square w-full">
-      <div role="img" aria-label="Puding karamel dua lapis Loka Pudding di atas piring keramik" className="absolute inset-0">
+      <div role="img" aria-label={label} className="absolute inset-0">
         <div
           className={cn(
             "absolute inset-0 transition-opacity duration-700 ease-out",
@@ -106,7 +143,7 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
           )}
           onPointerDown={live3D ? undefined : pokeFallback}
         >
-          {fallback}
+          <PuddingFallback variant={variant} className="h-full w-full" />
         </div>
 
         {show3D ? (
@@ -119,6 +156,7 @@ export function PuddingStage({ fallback }: PuddingStageProps) {
             <PuddingCanvas
               active={inView}
               pokeSignal={pokeSignal}
+              nudge={nudge}
               onReady={handleReady}
               onUnsupported={handleUnsupported}
               variant={variant}

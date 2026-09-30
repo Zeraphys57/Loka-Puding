@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { NeutralToneMapping } from "three";
 import { Pudding } from "./Pudding";
 import { CAMERA } from "./puddingProfile";
+import type { Nudge } from "./PuddingStage";
 import { StudioEnvironment } from "./StudioEnvironment";
 import type { PuddingVariant } from "./variants";
 
@@ -66,13 +67,14 @@ export type PuddingCanvasProps = {
   /** false saat hero tidak terlihat → render dihentikan total */
   active: boolean;
   pokeSignal: number;
+  nudge?: Nudge;
   onReady: () => void;
   /** Perangkat tidak sanggup menjaga ±30 fps bahkan di kualitas terendah */
   onUnsupported: () => void;
   variant: PuddingVariant;
 };
 
-export default function PuddingCanvas({ active, pokeSignal, onReady, onUnsupported, variant }: PuddingCanvasProps) {
+export default function PuddingCanvas({ active, pokeSignal, nudge, onReady, onUnsupported, variant }: PuddingCanvasProps) {
   const [compiled, setCompiled] = useState(false);
   const [maxDpr] = useState(() => Math.min(window.devicePixelRatio || 1, MAX_DPR));
   const [dpr, setDpr] = useState(maxDpr);
@@ -111,7 +113,7 @@ export default function PuddingCanvas({ active, pokeSignal, onReady, onUnsupport
       <hemisphereLight args={["#ffffff", "#e6cfb3", 0.35]} />
       <directionalLight position={[-3, 5, 4]} intensity={1.1} />
 
-      <Pudding pokeSignal={pokeSignal} lowQuality={lowQuality} variant={variant} />
+      <Pudding pokeSignal={pokeSignal} nudge={nudge} lowQuality={lowQuality} variant={variant} />
 
       {/* Bayangan lembut di bawah piring. Dirender sekali saja karena dasar puding tidak bergerak. */}
       <ContactShadows

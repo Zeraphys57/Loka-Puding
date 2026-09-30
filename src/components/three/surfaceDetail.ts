@@ -6,7 +6,7 @@ import { LAYER_SPLIT_Y } from "./puddingProfile";
  * dihitung di fragment shader dari posisi vertex SEBELUM bergoyang, jadi teksturnya "menempel"
  * di puding dan ikut bergoyang bersamanya.
  */
-export type SurfaceKind = "custard" | "caramel" | "ceramic";
+export type SurfaceKind = "custard" | "caramel" | "ceramic" | "popcorn";
 
 export type SurfaceUniforms = {
   /** Kekuatan tonjolan mikro: 1 = penuh, 0 = mati (mode hemat saat perangkat kewalahan) */
@@ -65,6 +65,29 @@ float lokaFade(float footprint, float frequency) {
  * - lokaRoughness: tambahan kekasaran
  */
 const KIND_GLSL: Record<SurfaceKind, string> = {
+  // Popcorn karamel: lapisan gula keras yang renyah. Gumpalan-gumpalan kecil bertepi tajam
+  // (|noise| bernilai nol di celahnya), butiran gula halus, dan karamel pekat yang mengumpul di celah.
+  // Kilaunya pecah jadi banyak titik kecil: kesan keras & kering, bukan licin-kenyal seperti puding.
+  popcorn: /* glsl */ `
+#define LOKA_COAT_BUMP 0.85
+float lokaCavity(vec3 p, float footprint) {
+  float crease = abs(lokaNoise(p * 28.0));
+  return (1.0 - smoothstep(0.0, 0.12, crease)) * lokaFade(footprint, 28.0);
+}
+float lokaHeight(vec3 p, float footprint) {
+  float lumps = (0.45 - abs(lokaNoise(p * 28.0))) * 0.0055 * lokaFade(footprint, 28.0);
+  float grit = lokaNoise(p * 90.0 + 3.7) * 0.001 * lokaFade(footprint, 90.0);
+  return lumps + grit;
+}
+vec3 lokaTint(vec3 p, float cavity) {
+  float blotch = lokaNoise(p * 12.0 + 7.0);
+  vec3 tint = vec3(1.0) + blotch * vec3(0.16, 0.13, 0.07);
+  return tint * (1.0 - cavity * vec3(0.26, 0.33, 0.42));
+}
+float lokaRoughness(vec3 p, float cavity) {
+  return lokaNoise(p * 55.0) * 0.18 + cavity * 0.25;
+}
+`,
   // Puding susu: permukaan lembap tidak rata sempurna, sesekali pori udara kecil,
   // sedikit kecokelatan tepat di bawah lapisan karamel.
   custard: /* glsl */ `

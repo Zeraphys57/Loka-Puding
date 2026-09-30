@@ -134,6 +134,8 @@ Puding di bagian atas halaman adalah model 3D yang **bergoyang saat dicolek**, c
 
 - Model 3D hanya dimuat setelah halaman selesai tampil, dan **hanya di perangkat yang mampu**. Di perangkat lain (mode hemat data, memori kecil, tanpa kartu grafis, atau pengaturan "kurangi gerakan"), tampil ilustrasi puding yang sama dalam bentuk gambar.
 - Untuk mencoba: tambahkan `?pudding=3d` (paksa 3D) atau `?pudding=static` (paksa gambar) di belakang URL.
+- **Tiga varian: Klasik, Regal, Popcorn.** Pengunjung bisa menggeser pudingnya ke kiri-kanan atau memilih lewat tombol di bawahnya. Nama, harga, catatan tangan, dan pesan WhatsApp diambil otomatis dari menu yang bersangkutan di `src/data/menu.ts`. Menu yang dihapus dari data otomatis hilang dari hero. Link langsung ke satu varian: `?varian=regal` atau `?varian=popcorn`.
+- Topping dibuat langsung dengan kode (tanpa file model): bentuk & posisinya ada di `src/components/three/toppingLayout.ts` dan `toppings.ts`, gambar cadangannya di `PuddingFallback.tsx`.
 - **Mengatur rasa goyangan:** ubah angka di `src/components/three/jiggle.config.ts` (kekakuan, redaman, kekuatan colekan, dll.). Saat `npm run dev`, nilainya bisa dicoba langsung dari console browser lewat `window.__JIGGLE`.
 - **Warna & tekstur:** warna lapisan susu, karamel, dan piring ada di `createMaterials` (`src/components/three/Pudding.tsx`). Tekstur (pori halus, riak karamel, bintik piring keramik) dibuat langsung di shader tanpa file gambar, lihat `src/components/three/surfaceDetail.ts`. Kalau warnanya diubah, samakan juga gradasi di `PuddingFallback.tsx` (versi gambar/cadangan).
 

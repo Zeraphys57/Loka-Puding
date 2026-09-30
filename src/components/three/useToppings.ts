@@ -4,6 +4,7 @@ import { useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Group, Texture } from "three";
 import type { JiggleUniforms } from "./jiggleShader";
+import type { SurfaceUniforms } from "./surfaceDetail";
 import { createToppings, type ToppedVariant, type ToppingSet } from "./toppings";
 import type { PuddingVariant } from "./variants";
 
@@ -19,13 +20,13 @@ const PREBUILD_DELAY = 1500;
  * saat browser senggang lalu shader-nya dikompilasi diam-diam, jadi berganti varian nanti instan.
  * (Membuat semuanya sekaligus di awal menahan halaman ±0,25 detik di HP kelas menengah.)
  */
-export function useToppings(variant: PuddingVariant, uniforms: JiggleUniforms) {
+export function useToppings(variant: PuddingVariant, uniforms: JiggleUniforms, surface: SurfaceUniforms) {
   const gl = useThree((state) => state.gl);
   const camera = useThree((state) => state.camera);
   const scene = useThree((state) => state.scene);
 
   const [sets, setSets] = useState<ToppingSets>(() =>
-    variant === "klasik" ? {} : { [variant]: createToppings(variant, uniforms) },
+    variant === "klasik" ? {} : { [variant]: createToppings(variant, uniforms, surface) },
   );
   // Salinan terbaru untuk callback async (dan untuk dilepas saat unmount)
   const latest = useRef<ToppingSets>(sets);
@@ -39,10 +40,10 @@ export function useToppings(variant: PuddingVariant, uniforms: JiggleUniforms) {
   const build = useCallback(
     (target: ToppedVariant) => {
       if (latest.current[target]) return;
-      latest.current = { ...latest.current, [target]: createToppings(target, uniforms) };
+      latest.current = { ...latest.current, [target]: createToppings(target, uniforms, surface) };
       setSets(latest.current);
     },
-    [uniforms],
+    [uniforms, surface],
   );
 
   // Varian dipilih sebelum sempat disiapkan: buat di frame berikutnya
