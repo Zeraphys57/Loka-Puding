@@ -15,7 +15,8 @@ import {
   SRGBColorSpace,
   Vector2,
   Vector3,
-  type BufferGeometry,
+  BufferGeometry,
+  DoubleSide,
 } from "three";
 import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { applyJiggle, type JiggleUniforms } from "./jiggleShader";
@@ -29,6 +30,7 @@ import {
   popcornLayout,
   seededRandom,
   type Anchor,
+  type CrumbLayout,
   type Point3,
 } from "./toppingLayout";
 import type { PuddingVariant } from "./variants";
@@ -37,7 +39,7 @@ import type { PuddingVariant } from "./variants";
  * Topping varian Regal & Popcorn, dibuat prosedural (tanpa file model atau gambar), mengikuti foto menu:
  * - Popcorn karamel jenis "mushroom" (bulat bergumpal, berlapis gula renyah), ditumpuk di atas karamel,
  *   beberapa butir jatuh ke piring.
- * - Biskuit Marie berdiri tertancap di karamel, dengan remahan di sekitarnya.
+ * - Biskuit Regal Marie berdiri tertancap di karamel, dengan pecahan & serbuk biskuit menumpuk di depannya.
  * Semua potongan adalah benda padat (deformasi "rigid" di jiggleShader.ts): ikut berpindah bersama puding,
  * tapi bentuknya tidak pernah ikut kenyal/gepeng.
  */
@@ -198,7 +200,7 @@ function createPlateShadows(): BufferGeometry {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Biskuit Marie + remahan                                            */
+/*  Biskuit Regal Marie + remahan                                      */
 /* ------------------------------------------------------------------ */
 
 /** Cakram dengan tepi membulat & bergerigi halus, UV planar (tampak depan) untuk pola timbulnya. */
@@ -249,39 +251,128 @@ function biscuitDisc(): BufferGeometry {
   return geometry;
 }
 
-const CRUMB_COLOR = new Color("#c58f52");
+// Permukaan biskuit yang terpanggang (atas/bawah) vs bagian dalam yang pucat di sisi patahan
+const CRUMB_BAKED = new Color("#c07f3e");
+const CRUMB_INSIDE = new Color("#e8c992");
+const CRUMB_SIDE = new Color("#d9ad6e");
 
-/** Satu remahan tak beraturan (flat shading). Radius ±1. */
-function crumb(seed: number, shade: number): BufferGeometry {
-  const geometry = new IcosahedronGeometry(1, 1);
-  geometry.deleteAttribute("uv");
-  const position = geometry.getAttribute("position");
-  const colors = new Float32Array(position.count * 3);
-  const v = new Vector3();
-  for (let i = 0; i < position.count; i++) {
-    v.fromBufferAttribute(position, i);
-    // Titik sudut yang sama (terduplikasi di tiap sisi) harus bergeser sama → acak dari posisinya sendiri
-    const jitter =
-      0.82 + 0.3 * noise3(v.x * 1.7 + seed, v.y * 1.7 - seed, v.z * 1.7 + seed * 0.5) + 0.12 * noise3(v.x * 4 - seed, v.y * 4, v.z * 4 + seed);
-    position.setXYZ(i, v.x * jitter, v.y * jitter * 0.62, v.z * jitter);
-    colors.set([CRUMB_COLOR.r * shade, CRUMB_COLOR.g * shade, CRUMB_COLOR.b * shade], i * 3);
+/**
+ * Satu pecahan biskuit bersudut, dalam satuan dunia: tutup atas & bawah (permukaan biskuit) dan sisi patahan
+ * yang bergerigi (cincin tengahnya maju-mundur acak). Tiap sisi punya warnanya sendiri (flat shading).
+ */
+function biscuitChunk({ size, thickness, outline, broken, shade, seed }: CrumbLayout): BufferGeometry {
+  const rand = seededRandom(seed * 131 + 7);
+  const half = thickness / 2;
+  const ring = (y: number, jag: number) =>
+    outline.map(([angle, k]) => {
+      const r = size * k * (1 + (rand() - 0.5) * jag);
+      return new Vector3(Math.cos(angle) * r, y + (rand() - 0.5) * thickness * 0.4, Math.sin(angle) * r);
+    });
+  const top = ring(half, 0.1);
+  const middle = ring(0, 0.3);
+  const bottom = ring(-half, 0.16);
+  const topCenter = new Vector3((rand() - 0.5) * size * 0.2, half * (1.04 + rand() * 0.12), (rand() - 0.5) * size * 0.2);
+  const bottomCenter = new Vector3(0, -half, 0);
+
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const triangle = (a: Vector3, b: Vector3, c: Vector3, color: Color) => {
+    positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+    // Sedikit belang per sisi, seperti biskuit asli yang matangnya tidak rata
+    const k = shade * (0.94 + rand() * 0.12);
+    for (let i = 0; i < 3; i++) colors.push(color.r * k, color.g * k, color.b * k);
+  };
+  const up = broken ? CRUMB_INSIDE : CRUMB_BAKED;
+  const down = broken ? CRUMB_BAKED : CRUMB_INSIDE;
+  const n = outline.length;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    triangle(topCenter, top[j], top[i], up);
+    triangle(bottomCenter, bottom[i], bottom[j], down);
+    triangle(top[i], top[j], middle[j], CRUMB_SIDE);
+    triangle(top[i], middle[j], middle[i], CRUMB_SIDE);
+    triangle(middle[i], middle[j], bottom[j], CRUMB_SIDE);
+    triangle(middle[i], bottom[j], bottom[i], CRUMB_SIDE);
   }
-  geometry.setAttribute("color", new BufferAttribute(colors, 3));
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setAttribute("color", new BufferAttribute(new Float32Array(colors), 3));
   return geometry;
 }
 
 function createCrumbs(): BufferGeometry {
   return mergeParts(
-    crumbLayout().map(({ center, size, rotation, shade, seed }) => {
-      const piece = place(crumb(seed, shade), center, rotation, size);
+    crumbLayout().map((layout) => {
+      const piece = place(biscuitChunk(layout), layout.center, layout.rotation, 1);
       piece.computeVertexNormals();
-      // Remahan tergeletak di permukaan: ikut bergeser di titiknya sendiri, tidak ikut condong
-      return withAnchor(piece, { ...center, lean: 0 });
+      // Tiap remahan ikut bergeser bersama titik karamel di bawahnya, tidak ikut condong
+      return withAnchor(piece, layout.anchor);
     }),
   );
 }
 
-/** Pola timbul biskuit Marie di kanvas: warna (map) & tinggi (bumpMap), 128 = rata. */
+/** Huruf-huruf ditata melengkung di sepanjang busur (pusat cx, cy; jari-jari r), berpusat di puncaknya. */
+function fillArcText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, r: number, spacing: number) {
+  const chars = [...text];
+  const widths = chars.map((char) => ctx.measureText(char).width + spacing);
+  const total = widths.reduce((sum, w) => sum + w, 0) - spacing;
+  let angle = -Math.PI / 2 - total / r / 2;
+  chars.forEach((char, i) => {
+    const mid = angle + (widths[i] - spacing) / r / 2;
+    ctx.save();
+    ctx.translate(cx + Math.cos(mid) * r, cy + Math.sin(mid) * r);
+    ctx.rotate(mid + Math.PI / 2);
+    ctx.fillText(char, 0, 0);
+    ctx.restore();
+    angle += widths[i] / r;
+  });
+}
+
+/** Motif pinggiran "kunci Yunani" di antara dua cincin, seperti pada biskuit Regal Marie. */
+function strokeMeander(ctx: CanvasRenderingContext2D, c: number, inner: number, outer: number, units: number) {
+  const at = (unit: number, u: number, v: number): [number, number] => {
+    const angle = ((unit + u) / units) * Math.PI * 2;
+    const r = inner + v * (outer - inner);
+    return [c + Math.cos(angle) * r, c + Math.sin(angle) * r];
+  };
+  // Satu kait per unit: naik, ke samping, turun, lalu melingkar ke dalam
+  const key: [number, number][] = [
+    [0, 0],
+    [0, 1],
+    [0.78, 1],
+    [0.78, 0.28],
+    [0.38, 0.28],
+    [0.38, 0.64],
+  ];
+  ctx.beginPath();
+  ctx.arc(c, c, inner, 0, Math.PI * 2);
+  ctx.moveTo(c + outer * 1.06, c);
+  ctx.arc(c, c, outer * 1.06, 0, Math.PI * 2);
+  for (let unit = 0; unit < units; unit++) {
+    key.forEach(([u, v], i) => {
+      const [x, y] = at(unit, u, v);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+  }
+  ctx.stroke();
+}
+
+/** Tulisan timbul "REGAL" (melengkung) di atas "MARIE", seperti di foto menu. */
+function drawBiscuitLettering(ctx: CanvasRenderingContext2D, c: number, offset = 0) {
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 58px Georgia, 'Times New Roman', serif";
+  // Sepertiga bawah biskuit tenggelam di karamel & tertutup remahan, jadi tulisan ditaruh agak tinggi
+  fillArcText(ctx, "REGAL", c + offset, c + 180 + offset, 260, 5);
+  ctx.font = "bold 78px Georgia, 'Times New Roman', serif";
+  ctx.letterSpacing = "5px";
+  ctx.fillText("MARIE", c + offset, c + 24 + offset);
+  ctx.letterSpacing = "0px";
+}
+
+/** Pola timbul biskuit Regal Marie di kanvas: warna (map) & tinggi (bumpMap), 128 = rata. */
 function biscuitTextures(): { map: CanvasTexture; bump: CanvasTexture } {
   const SIZE = 512;
   const C = SIZE / 2;
@@ -291,45 +382,18 @@ function biscuitTextures(): { map: CanvasTexture; bump: CanvasTexture } {
     return element;
   };
   const rand = seededRandom(3052026);
-
-  // Lubang-lubang kecil khas biskuit Marie: satu cincin di tepi + beberapa di tengah
-  const holes: [number, number][] = [];
-  for (let i = 0; i < 36; i++) {
-    const a = (i / 36) * Math.PI * 2;
-    holes.push([C + Math.cos(a) * C * 0.9, C + Math.sin(a) * C * 0.9]);
-  }
-  for (const [dx, dy] of [
-    [-0.42, -0.36],
-    [0, -0.44],
-    [0.42, -0.36],
-    [-0.42, 0.36],
-    [0, 0.44],
-    [0.42, 0.36],
-  ]) {
-    holes.push([C + dx * C, C + dy * C]);
-  }
+  const MEANDER = { inner: C * 0.74, outer: C * 0.86, units: 34 };
 
   const bumpCanvas = canvas();
   const b = bumpCanvas.getContext("2d")!;
   b.fillStyle = "rgb(128,128,128)";
   b.fillRect(0, 0, SIZE, SIZE);
-  b.filter = "blur(2px)";
-  b.strokeStyle = "rgb(188,188,188)";
-  b.lineWidth = 7;
-  b.beginPath();
-  b.arc(C, C, C * 0.8, 0, Math.PI * 2);
-  b.stroke();
-  b.fillStyle = "rgb(40,40,40)";
-  for (const [x, y] of holes) {
-    b.beginPath();
-    b.arc(x, y, 6.5, 0, Math.PI * 2);
-    b.fill();
-  }
-  b.fillStyle = "rgb(200,200,200)";
-  b.font = "bold 96px Georgia, 'Times New Roman', serif";
-  b.textAlign = "center";
-  b.textBaseline = "middle";
-  b.fillText("MARIE", C, C + 6);
+  b.filter = "blur(1.5px)";
+  b.strokeStyle = "rgb(196,196,196)";
+  b.lineWidth = 6;
+  strokeMeander(b, C, MEANDER.inner, MEANDER.outer, MEANDER.units);
+  b.fillStyle = "rgb(206,206,206)";
+  drawBiscuitLettering(b, C);
   b.filter = "none";
   // Pori halus permukaan biskuit panggang
   for (let i = 0; i < 2600; i++) {
@@ -347,17 +411,19 @@ function biscuitTextures(): { map: CanvasTexture; bump: CanvasTexture } {
   toast.addColorStop(1, "#a86a30");
   m.fillStyle = toast;
   m.fillRect(0, 0, SIZE, SIZE);
-  m.fillStyle = "rgba(125,72,28,0.55)";
-  for (const [x, y] of holes) {
-    m.beginPath();
-    m.arc(x, y, 6, 0, Math.PI * 2);
-    m.fill();
-  }
-  m.fillStyle = "rgba(255,238,205,0.28)";
-  m.font = "bold 96px Georgia, 'Times New Roman', serif";
-  m.textAlign = "center";
-  m.textBaseline = "middle";
-  m.fillText("MARIE", C, C + 6);
+  // Timbulan: bayangan tipis di bawah-kanan, sisi atasnya sedikit lebih terang
+  m.lineWidth = 6;
+  m.strokeStyle = "rgba(120,68,24,0.28)";
+  m.save();
+  m.translate(2, 3);
+  strokeMeander(m, C, MEANDER.inner, MEANDER.outer, MEANDER.units);
+  m.restore();
+  m.strokeStyle = "rgba(255,236,200,0.3)";
+  strokeMeander(m, C, MEANDER.inner, MEANDER.outer, MEANDER.units);
+  m.fillStyle = "rgba(120,68,24,0.3)";
+  drawBiscuitLettering(m, C, 3);
+  m.fillStyle = "rgba(255,238,205,0.34)";
+  drawBiscuitLettering(m, C);
   // Bintik gula & bagian yang lebih matang
   for (let i = 0; i < 700; i++) {
     m.fillStyle = `rgba(${120 + rand() * 40},${66 + rand() * 20},${22 + rand() * 10},${0.12 + rand() * 0.22})`;
@@ -456,7 +522,11 @@ export function createToppings(variant: ToppedVariant, uniforms: JiggleUniforms,
       },
       {
         geometry: createCrumbs(),
-        material: applyJiggle(new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true }), uniforms, RIGID),
+        material: applyJiggle(
+          new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, flatShading: true, side: DoubleSide }),
+          uniforms,
+          RIGID,
+        ),
       },
     );
   }
