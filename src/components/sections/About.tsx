@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { GoyangMeter } from "@/components/ui/GoyangMeter";
 import { HandNote } from "@/components/ui/HandNote";
 import { ArrowDownIcon } from "@/components/ui/Icons";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/cn";
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -192,18 +194,10 @@ export function About() {
               </div>
             </div>
 
-            <p
-              aria-hidden="true"
-              className="mt-12 flex items-center gap-3 text-[0.7rem] font-semibold tracking-[0.2em] text-pudding-cream uppercase sm:mt-16"
-            >
-              <span className="h-px w-8 bg-pudding-cream/50" />
-              Gbr. 1 · Penampang puding Loka, diperbesar ±40×
-            </p>
-
             {/* Bab 01 */}
             <article
               aria-labelledby={`kisah-${BAHAN.no}`}
-              className="mt-14 grid items-center gap-12 sm:mt-20 lg:grid-cols-12 lg:gap-10"
+              className="mt-28 grid items-center gap-12 sm:mt-36 lg:grid-cols-12 lg:gap-10"
             >
               <div className="lg:col-span-5" data-float="0.5">
                 <PhotoBubble
@@ -251,20 +245,8 @@ export function About() {
             </article>
 
             <article aria-labelledby={`kisah-${TEKSTUR.no}`} className="md:mt-56">
-              <div className="relative" data-float="0.35">
-                <PhotoBubble
-                  chapter={TEKSTUR}
-                  tone="milk"
-                  sizes="(min-width: 1024px) 26rem, (min-width: 768px) 42vw, 80vw"
-                  className="mx-auto w-[min(80vw,26rem)] md:mx-0 md:w-full md:max-w-[26rem]"
-                />
-                <HandNote
-                  arrow="down-left"
-                  arrowSide="start"
-                  className="absolute -top-9 right-[4%] rotate-6 text-[1.5rem] text-pudding-caramel-700 sm:right-[12%] md:right-[2%]"
-                >
-                  lihat goyangnya!
-                </HandNote>
+              <div data-float="0.35">
+                <TextureShowcase />
               </div>
               <div className="mt-12" data-reveal>
                 <ChapterBody chapter={TEKSTUR} tone="milk" />
@@ -425,11 +407,23 @@ function Bubbles({ items, className }: { items: Bubble[]; className: string }) {
 
 type Tone = "caramel" | "milk";
 
+type PhotoBubbleProps = {
+  chapter: Chapter;
+  tone: Tone;
+  sizes: string;
+  className?: string;
+  /** Lingkaran fotonya (mis. untuk digoyangkan) */
+  photoRef?: Ref<HTMLDivElement>;
+  /** Hiasan yang menempel di pinggir foto */
+  children?: ReactNode;
+};
+
 /** Foto bundar seperti gelembung/lensa yang melayang di dalam lapisan. */
-function PhotoBubble({ chapter, tone, sizes, className }: { chapter: Chapter; tone: Tone; sizes: string; className?: string }) {
+function PhotoBubble({ chapter, tone, sizes, className, photoRef, children }: PhotoBubbleProps) {
   return (
     <div className={cn("relative aspect-square", className)}>
       <div
+        ref={photoRef}
         className={cn(
           "relative size-full overflow-hidden rounded-full shadow-[0_30px_60px_-26px_rgb(43_26_16/0.6)] ring-[6px]",
           tone === "caramel" ? "ring-pudding-cream/15" : "ring-white/90",
@@ -442,7 +436,85 @@ function PhotoBubble({ chapter, tone, sizes, className }: { chapter: Chapter; to
           className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_22%,rgb(255_255_255/0.32),transparent_40%)] shadow-[inset_0_-24px_48px_-18px_rgb(43_26_16/0.45)]"
         />
       </div>
+      {children}
     </div>
+  );
+}
+
+// Jarum goyang-meter: dari "cair", terayun lewat "keras", lalu mereda di "pas!" (derajat)
+const NEEDLE_SWING = [-78, 38, -24, 14, -7, 3.5, -1.5, 0];
+// Foto memendek-memanjang dari dasarnya seperti puding yang digoyang: [skala x, skala y]
+const PHOTO_JELLY = [
+  [1, 1],
+  [1.07, 0.93],
+  [0.95, 1.05],
+  [1.025, 0.975],
+  [0.99, 1.01],
+  [1, 1],
+];
+
+/**
+ * Bab 03 "Tekstur sempurna": foto yang benar-benar bergoyang (saat pertama terlihat, disentuh, atau disorot
+ * mouse), ditemani goyang-meter yang jarumnya ikut terayun lalu berhenti di "pas!".
+ */
+function TextureShowcase() {
+  const photoRef = useRef<HTMLDivElement>(null);
+  const needleRef = useRef<SVGGElement>(null);
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    const photo = photoRef.current;
+    const needle = needleRef.current;
+    if (!photo || !needle || reducedMotion) return;
+
+    const wobble = () => {
+      needle.getAnimations().forEach((animation) => animation.cancel());
+      photo.getAnimations().forEach((animation) => animation.cancel());
+      needle.animate(
+        NEEDLE_SWING.map((deg) => ({ transform: `rotate(${deg}deg)`, easing: "ease-in-out" })),
+        { duration: 1700 },
+      );
+      photo.animate(
+        PHOTO_JELLY.map(([x, y]) => ({ transform: `scale(${x}, ${y})` })),
+        { duration: 950, easing: "cubic-bezier(0.3, 0.7, 0.4, 1)" },
+      );
+    };
+
+    // Sekali saat foto cukup terlihat, lalu setiap kali disentuh/disorot
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        wobble();
+        observer.disconnect();
+      },
+      { threshold: 0.6 },
+    );
+    observer.observe(photo);
+    const onEnter = (event: PointerEvent) => {
+      if (event.pointerType === "mouse") wobble();
+    };
+    photo.addEventListener("pointerdown", wobble);
+    photo.addEventListener("pointerenter", onEnter);
+    return () => {
+      observer.disconnect();
+      photo.removeEventListener("pointerdown", wobble);
+      photo.removeEventListener("pointerenter", onEnter);
+    };
+  }, [reducedMotion]);
+
+  return (
+    <PhotoBubble
+      chapter={TEKSTUR}
+      tone="milk"
+      sizes="(min-width: 1024px) 26rem, (min-width: 768px) 42vw, 80vw"
+      className="mx-auto w-[min(80vw,26rem)] md:mx-0 md:w-full md:max-w-[26rem]"
+      photoRef={photoRef}
+    >
+      <GoyangMeter
+        needleRef={needleRef}
+        className="absolute -right-[7%] -bottom-[8%] z-10 rotate-[5deg] md:top-[2%] md:-right-[3%] md:bottom-auto xl:-right-[30%]"
+      />
+    </PhotoBubble>
   );
 }
 
