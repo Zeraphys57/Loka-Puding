@@ -41,7 +41,6 @@ export type HeroVariantItem = {
   variant: PuddingVariant;
   short: string;
   name: string;
-  priceLabel: string;
   note?: string;
   alt: string;
   /** Link WhatsApp dengan nama & harga menu ini sudah terisi */

@@ -1,24 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { PuddingStage, type Nudge } from "@/components/three/PuddingStage";
 import type { HeroVariantItem, PuddingVariant } from "@/components/three/variants";
 import { ButtonLink } from "@/components/ui/Button";
-import { HandNote } from "@/components/ui/HandNote";
-import { ArrowRightIcon, WhatsAppIcon } from "@/components/ui/Icons";
-import { PriceSticker } from "@/components/ui/PriceSticker";
+import { WhatsAppIcon } from "@/components/ui/Icons";
+import { PuddingMark } from "@/components/ui/Logo";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/cn";
 import { whatsappOrderLink } from "@/lib/whatsapp";
 import { onVariantSelect, selectVariant, stepVariant, useSelectedVariant, type Direction } from "@/lib/heroVariant";
+import { HERO_NOTES, HeroNotes, POKE_NOTE } from "./HeroNotes";
 
 /*
  * Hero bisa digeser kiri-kanan untuk melihat tiap menu (Klasik, Regal, Popcorn).
- * - Puding digeser dengan jari/mouse, atau lewat tombol ‹ Klasik · Regal · Popcorn ›.
+ * - Puding digeser dengan jari/mouse, atau dipilih lewat tiga puding mini di bawahnya.
  * - Puding lama meluncur keluar, yang baru meluncur masuk lalu bergoyang seperti piring yang didorong.
- * - Stiker harga & tombol Pesan ikut varian yang tampil.
+ * - Coretan tangan (HeroNotes) & tombol Pesan ikut varian yang tampil. Harga sengaja tidak ditampilkan di hero.
  * Pilihan disimpan di lib/heroVariant.ts supaya komponen-komponen yang letaknya berjauhan tetap sepakat.
  */
+
+// Catatan yang dimulai saat halaman pertama dibuka menunggu judul & puding muncul dulu (detik)
+const NOTES_FIRST_DELAY = 0.9;
 
 // Jarak geser (px) atau kecepatan rata-rata (px/ms) minimum agar dianggap berganti varian
 const SWIPE_DISTANCE = 60;
@@ -44,6 +47,7 @@ export function HeroPudding({ items }: { items: HeroVariantItem[] }) {
   const [shown, setShown] = useState<PuddingVariant | null>(null);
   const [nudge, setNudge] = useState<Nudge>({ id: 0, x: 0 });
   const slideRef = useRef<HTMLDivElement>(null);
+  const notesRef = useRef<HTMLDivElement>(null);
   const drag = useRef<DragState | null>(null);
   const reducedMotion = useReducedMotion();
 
@@ -53,12 +57,16 @@ export function HeroPudding({ items }: { items: HeroVariantItem[] }) {
 
   useEffect(
     () =>
-      onVariantSelect((next, direction) => {
+      onVariantSelect((next, direction, previous) => {
         const slide = slideRef.current;
         if (!slide || reducedMotion) {
           setShown(next);
           return;
         }
+        // Tahan puding yang sedang tampil selama ia meluncur keluar (termasuk saat pertama kali berganti)
+        setShown((current) => current ?? previous);
+        // Catatan varian lama memudar; yang baru ditulis ulang begitu puding baru masuk
+        notesRef.current?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
         // Mulai dari posisi terakhir (bisa sedang diseret), hentikan animasi sebelumnya
         const from = slide.style.transform || "none";
         slide.getAnimations().forEach((animation) => animation.cancel());
@@ -144,92 +152,111 @@ export function HeroPudding({ items }: { items: HeroVariantItem[] }) {
       >
         <PuddingStage
           variant={displayed}
-          label={item ? `${item.alt}. ${item.name}, ${item.priceLabel}.` : ""}
+          label={item ? `${item.alt}. ${item.name}.` : ""}
           nudge={nudge}
         />
       </div>
 
+      {/* Coretan "colek aku!" tetap. Catatan per varian ditulis ulang setiap puding baru selesai masuk
+          (nudge.id bertambah), juga kalau setelah digeser cepat bolak-balik variannya ternyata sama. */}
+      <HeroNotes callouts={[POKE_NOTE]} delay={NOTES_FIRST_DELAY + 1.2} />
+      {item ? (
+        <HeroNotes
+          key={`${displayed}-${nudge.id}`}
+          ref={notesRef}
+          callouts={HERO_NOTES[displayed]}
+          menuNote={item.note}
+          delay={shown ? 0.2 : NOTES_FIRST_DELAY}
+        />
+      ) : null}
+
       {swipeable && item ? (
-        <>
-          <PriceSticker
-            key={`price-${displayed}`}
-            label={item.priceLabel}
-            className="pointer-events-none absolute right-[-2%] bottom-[24%] origin-bottom-right rotate-[9deg] scale-[0.62] animate-pop-in sm:scale-75 lg:top-[6%] lg:right-[2%] lg:bottom-auto lg:origin-top-right lg:scale-90"
-          />
-          {/* Catatan tangan dari data menu ("ada kriuknya!"), hanya di desktop: di HP bertabrakan dengan judul */}
-          {item.note ? (
-            <div className="pointer-events-none absolute top-[7%] left-[2%] hidden lg:block">
-              <HandNote key={`note-${displayed}`} arrow="down-right" className="-rotate-6 animate-pop-in text-[1.65rem]">
-                {item.note}
-              </HandNote>
-            </div>
-          ) : null}
-          {/* Diumumkan ke pembaca layar hanya setelah pengunjung berganti varian */}
-          <p className="sr-only" aria-live="polite">
-            {shown ? `${item.name}, ${item.priceLabel}` : ""}
-          </p>
-        </>
+        /* Diumumkan ke pembaca layar hanya setelah pengunjung berganti varian */
+        <p className="sr-only" aria-live="polite">
+          {shown ? items.find((entry) => entry.variant === selected)?.name : ""}
+        </p>
       ) : null}
     </>
   );
 }
 
-/** Tombol ‹ Klasik · Regal · Popcorn ›. Gumpalan karamel meluncur kenyal ke varian yang aktif. */
+/** Lingkaran spidol yang tidak menutup rapi, seperti menandai pilihan di kertas menu. */
+function MarkerRing() {
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute -inset-x-1.5 -inset-y-1">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" className="size-full overflow-visible" focusable="false">
+        <path
+          d="M18 22C34 6 74 4 88 24 100 42 96 76 70 90 46 100 14 92 7 66 1 44 10 24 34 12 42 8 52 7 60 8"
+          pathLength={1}
+          stroke="currentColor"
+          strokeWidth={2.6}
+          strokeLinecap="round"
+          className="animate-draw text-caramel-600 [animation-duration:0.6s] [stroke-dasharray:1] [stroke-dashoffset:1]"
+        />
+      </svg>
+    </span>
+  );
+}
+
+/**
+ * Pilihan varian: tiga puding mini (ikon logo + topping-nya) dengan nama bertulisan tangan.
+ * Yang dipilih dilingkari spidol & bergoyang; yang lain agak pudar dan bergoyang saat disorot.
+ * Panah kiri/kanan di keyboard juga berganti varian.
+ */
 export function HeroVariantTabs({ items, className }: { items: HeroVariantItem[]; className?: string }) {
   const selected = useSelectedVariant();
+  // useId() bisa berisi karakter yang tidak aman di url(#…) SVG
+  const uid = useId().replace(/[^\w-]/g, "");
   if (items.length < 2) return null;
-  const index = Math.max(
-    0,
-    items.findIndex((item) => item.variant === selected),
-  );
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const step: Direction | 0 = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
     if (!step) return;
     event.preventDefault();
+    const index = Math.max(
+      0,
+      items.findIndex((item) => item.variant === selected),
+    );
     stepVariant(step);
+    // Fokus ikut pindah ke puding yang baru dipilih
+    event.currentTarget.querySelectorAll("button")[(index + step + items.length) % items.length]?.focus();
   };
 
-  const arrow =
-    "grid size-9 shrink-0 place-items-center rounded-full bg-milk-50/85 text-espresso shadow-soft ring-1 ring-espresso/10 backdrop-blur-md transition-[translate,background-color] duration-500 ease-jelly hover:bg-milk-50 active:scale-90 [&_svg]:size-4";
-
   return (
-    <div role="group" aria-label="Pilih varian puding" onKeyDown={onKeyDown} className={cn("items-center gap-1.5", className)}>
-      {/* Panah: hanya di layar lebar (di HP cukup geser pudingnya atau ketuk labelnya) */}
-      <button type="button" aria-label="Varian sebelumnya" onClick={() => stepVariant(-1)} className={cn(arrow, "hidden hover:-translate-x-0.5 sm:grid")}>
-        <ArrowRightIcon className="-scale-x-100" />
-      </button>
-      <div
-        className="relative grid w-max rounded-full bg-milk-50/85 p-1 shadow-soft ring-1 ring-espresso/10 backdrop-blur-md"
-        style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}
-      >
-        <span
-          aria-hidden="true"
-          className="absolute inset-y-1 left-1 rounded-full bg-caramel-600 shadow-soft transition-transform duration-700 ease-jelly motion-reduce:transition-none"
-          style={{ width: `calc((100% - 0.5rem) / ${items.length})`, transform: `translateX(${index * 100}%)` }}
-        />
-        {items.map((item) => {
-          const active = item.variant === selected;
-          return (
-            <button
-              key={item.variant}
-              type="button"
-              aria-pressed={active}
-              aria-label={`${item.short}: ${item.name}, ${item.priceLabel}`}
-              onClick={() => selectVariant(item.variant)}
+    <div role="group" aria-label="Pilih varian puding" onKeyDown={onKeyDown} className={cn("items-end gap-1 sm:gap-3", className)}>
+      {items.map((item) => {
+        const active = item.variant === selected;
+        return (
+          <button
+            key={item.variant}
+            type="button"
+            aria-pressed={active}
+            aria-label={`${item.short}: ${item.name}`}
+            onClick={() => selectVariant(item.variant)}
+            className="group/tab relative flex w-[5.25rem] flex-col items-center rounded-3xl px-1 pt-1 pb-2 outline-none focus-visible:ring-2 focus-visible:ring-caramel-600 sm:w-[5.75rem]"
+          >
+            <PuddingMark
+              id={`${uid}-${item.variant}`}
+              topping={item.variant === "klasik" ? undefined : item.variant}
               className={cn(
-                "relative z-10 h-9 rounded-full px-3 text-[0.68rem] font-bold tracking-[0.14em] whitespace-nowrap uppercase transition-colors duration-300 sm:px-4 sm:text-[0.72rem]",
-                active ? "text-white" : "text-espresso hover:text-caramel-700",
+                "size-14 origin-bottom transition-[scale,opacity] duration-500 ease-jelly motion-reduce:transition-none lg:size-16",
+                active
+                  ? "scale-110 animate-jelly"
+                  : "scale-[0.86] opacity-75 group-hover/tab:scale-100 group-hover/tab:animate-jiggle-tap group-hover/tab:opacity-100",
+              )}
+            />
+            <span
+              className={cn(
+                "font-hand text-[1.35rem] leading-none transition-colors duration-300",
+                active ? "text-espresso" : "text-caramel-700/75 group-hover/tab:text-caramel-700",
               )}
             >
               {item.short}
-            </button>
-          );
-        })}
-      </div>
-      <button type="button" aria-label="Varian berikutnya" onClick={() => stepVariant(1)} className={cn(arrow, "hidden hover:translate-x-0.5 sm:grid")}>
-        <ArrowRightIcon />
-      </button>
+            </span>
+            {active ? <MarkerRing /> : null}
+          </button>
+        );
+      })}
     </div>
   );
 }

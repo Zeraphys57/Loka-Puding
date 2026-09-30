@@ -9,7 +9,7 @@ import { HERO_VARIANTS, isPuddingVariant, type PuddingVariant } from "@/componen
 
 export type Direction = 1 | -1;
 
-type SelectListener = (next: PuddingVariant, direction: Direction) => void;
+type SelectListener = (next: PuddingVariant, direction: Direction, previous: PuddingVariant) => void;
 
 const order = HERO_VARIANTS;
 let selected: PuddingVariant | null = null;
@@ -42,7 +42,7 @@ export function selectVariant(next: PuddingVariant, direction?: Direction) {
   selected = next;
   const dir = direction ?? (order.indexOf(next) > order.indexOf(current) ? 1 : -1);
   listeners.forEach((listener) => listener());
-  selectListeners.forEach((listener) => listener(next, dir));
+  selectListeners.forEach((listener) => listener(next, dir, current));
 }
 
 /** Varian sebelumnya/berikutnya, berputar dari ujung ke ujung. */
