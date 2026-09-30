@@ -1,12 +1,14 @@
 import {
   BufferAttribute,
   CanvasTexture,
+  CircleGeometry,
   Color,
   Euler,
   IcosahedronGeometry,
   LatheGeometry,
   Matrix4,
   type Material,
+  MeshBasicMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   Quaternion,
@@ -17,27 +19,32 @@ import {
 } from "three";
 import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { applyJiggle, type JiggleUniforms } from "./jiggleShader";
-import { CARAMEL_WALL } from "./puddingProfile";
+import type { SurfaceUniforms } from "./surfaceDetail";
+import {
+  BISCUIT,
+  BISCUIT_ANCHOR,
+  BISCUIT_BASE,
+  crumbLayout,
+  plateTopY,
+  popcornLayout,
+  seededRandom,
+  type Anchor,
+  type Point3,
+} from "./toppingLayout";
 import type { PuddingVariant } from "./variants";
 
 /*
  * Topping varian Regal & Popcorn, dibuat prosedural (tanpa file model atau gambar), mengikuti foto menu:
- * - Popcorn karamel jenis "mushroom" (bulat bergumpal), ditumpuk di atas karamel, dua butir jatuh ke piring.
+ * - Popcorn karamel jenis "mushroom" (bulat bergumpal, berlapis gula renyah), ditumpuk di atas karamel,
+ *   beberapa butir jatuh ke piring.
  * - Biskuit Marie berdiri tertancap di karamel, dengan remahan di sekitarnya.
- * Semua potongan memakai deformasi "rigid" (jiggleShader.ts): ikut bergoyang bersama puding tanpa ikut gepeng.
+ * Semua potongan adalah benda padat (deformasi "rigid" di jiggleShader.ts): ikut berpindah bersama puding,
+ * tapi bentuknya tidak pernah ikut kenyal/gepeng.
  */
-
-function random(seed: number) {
-  let state = seed;
-  return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
-  };
-}
 
 // Perlin noise 3D (versi "improved"), tabel permutasi tetap → bentuk topping selalu sama di setiap kunjungan
 const PERM = (() => {
-  const rand = random(1337);
+  const rand = seededRandom(1337);
   const p = Array.from({ length: 256 }, (_, i) => i);
   for (let i = 255; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -84,27 +91,19 @@ function noise3(x: number, y: number, z: number): number {
   );
 }
 
-/** Tinggi permukaan atas karamel pada jarak r dari sumbu puding (mengikuti profil lapisan karamel). */
-function caramelTopY(r: number): number {
-  for (let i = CARAMEL_WALL.length - 1; i > 0; i--) {
-    const [innerR, innerY] = CARAMEL_WALL[i];
-    const [outerR, outerY] = CARAMEL_WALL[i - 1];
-    if (r >= innerR && r <= outerR) return innerY + ((r - innerR) / (outerR - innerR)) * (outerY - innerY);
-  }
-  return CARAMEL_WALL[0][1];
-}
-
 /** Titik tempel yang sama untuk semua vertex satu potongan (dibaca shader "rigid"). */
-function withAnchor(geometry: BufferGeometry, anchor: Vector3): BufferGeometry {
+function withAnchor(geometry: BufferGeometry, { x, y, z, lean }: Anchor): BufferGeometry {
   const count = geometry.getAttribute("position").count;
-  const data = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) data.set([anchor.x, anchor.y, anchor.z], i * 3);
-  geometry.setAttribute("aAnchor", new BufferAttribute(data, 3));
+  const data = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) data.set([x, y, z, lean], i * 4);
+  geometry.setAttribute("aAnchor", new BufferAttribute(data, 4));
   return geometry;
 }
 
-function place(geometry: BufferGeometry, position: Vector3, rotation: Euler, scale: Vector3): BufferGeometry {
-  return geometry.applyMatrix4(new Matrix4().compose(position, new Quaternion().setFromEuler(rotation), scale));
+function place(geometry: BufferGeometry, { x, y, z }: Point3, rotation: readonly [number, number, number], scale: number): BufferGeometry {
+  return geometry.applyMatrix4(
+    new Matrix4().compose(new Vector3(x, y, z), new Quaternion().setFromEuler(new Euler(...rotation)), new Vector3(scale, scale, scale)),
+  );
 }
 
 function mergeParts(parts: BufferGeometry[]): BufferGeometry {
@@ -134,6 +133,8 @@ function popcornKernel(seed: number, unitSphere: BufferGeometry): BufferGeometry
   const dir = new Vector3();
   const color = new Color();
   const o = seed * 7.13;
+  // Tiap butir sedikit beda matangnya: ada yang karamelnya tebal, ada yang lebih pucat
+  const tone = 0.88 + seededRandom(seed * 131)() * 0.2;
   for (let i = 0; i < position.count; i++) {
     dir.fromBufferAttribute(position, i).normalize();
     const lobes = noise3(dir.x * 1.4 + o, dir.y * 1.4 - o, dir.z * 1.4 + o * 0.6);
@@ -144,55 +145,13 @@ function popcornKernel(seed: number, unitSphere: BufferGeometry): BufferGeometry
     position.setXYZ(i, dir.x * radius, dir.y * radius * 0.9, dir.z * radius);
     // Lipatan lebih gelap (karamel mengumpul di sana), puncak tonjolan lebih terang
     color.lerpColors(POPCORN_DARK, POPCORN_LIGHT, Math.min(Math.max(puffs * 2.2 + small * 0.6 - 0.05, 0), 1));
-    colors.set([color.r, color.g, color.b], i * 3);
+    colors.set([Math.min(color.r * tone, 1), Math.min(color.g * tone, 1), Math.min(color.b * tone, 1)], i * 3);
   }
   geometry.setAttribute("color", new BufferAttribute(colors, 3));
   return geometry;
 }
 
-type Kernel = { center: Vector3; radius: number; anchor: Vector3 };
-
-/** Tumpukan berbentuk kubah di atas karamel (3 lapis), beberapa tumpah di tepi, dua jatuh ke piring. */
-function popcornLayout(rand: () => number): Kernel[] {
-  const kernels: Kernel[] = [];
-  const onTop = (r: number, angleDeg: number, radius: number, lift: number) => {
-    const angle = (angleDeg * Math.PI) / 180;
-    const center = new Vector3(Math.sin(angle) * r, caramelTopY(r) + lift, Math.cos(angle) * r);
-    // Titik tempel = pusat butir: butir yang lebih tinggi ikut berayun lebih jauh, seperti tumpukan sungguhan
-    kernels.push({ center, radius, anchor: center.clone() });
-  };
-
-  // Lapis 1: menempel & sedikit tenggelam di karamel
-  onTop(0, 0, 0.15, 0.08);
-  for (let i = 0; i < 7; i++) {
-    const radius = 0.13 + rand() * 0.03;
-    onTop(0.4 + rand() * 0.05, i * (360 / 7) + 10 + rand() * 14, radius, radius * 0.55);
-  }
-  // Tumpah di tepi karamel
-  for (const angle of [38, 152, 292]) {
-    const radius = 0.11 + rand() * 0.02;
-    onTop(0.62 + rand() * 0.03, angle + rand() * 10, radius, radius * 0.3);
-  }
-  // Lapis 2, mengisi celah lapis 1
-  for (let i = 0; i < 5; i++) {
-    onTop(0.2 + rand() * 0.05, i * 72 + 34 + rand() * 16, 0.13 + rand() * 0.025, 0.26 + rand() * 0.03);
-  }
-  // Puncak tumpukan
-  onTop(0.05, 20, 0.14, 0.46);
-  onTop(0.12, 210, 0.12, 0.43);
-
-  // Jatuh ke piring: titik tempelnya di piring, jadi tidak ikut bergoyang
-  for (const [x, z, radius] of [
-    [0.92, 0.72, 0.115],
-    [-1.02, 0.4, 0.105],
-  ] as const) {
-    kernels.push({ center: new Vector3(x, radius * 0.8, z), radius, anchor: new Vector3(x, 0, z) });
-  }
-  return kernels;
-}
-
 function createPopcorn(): BufferGeometry {
-  const rand = random(29092026);
   // Bola dasar dibuat & dirapikan (vertex kembar digabung) sekali, lalu disalin untuk tiap butir
   const sphere = new IcosahedronGeometry(1, 8);
   sphere.deleteAttribute("uv");
@@ -200,9 +159,9 @@ function createPopcorn(): BufferGeometry {
   const unitSphere = mergeVertices(sphere, 1e-4);
   sphere.dispose();
   const popcorn = mergeParts(
-    popcornLayout(rand).map(({ center, radius, anchor }, index) => {
-      const kernel = popcornKernel(index + 1, unitSphere);
-      place(kernel, center, new Euler(rand() * 6.28, rand() * 6.28, rand() * 6.28), new Vector3(radius, radius, radius));
+    popcornLayout().map(({ center, radius, anchor, rotation, seed }) => {
+      const kernel = popcornKernel(seed, unitSphere);
+      place(kernel, center, rotation, radius);
       kernel.computeVertexNormals();
       return withAnchor(kernel, anchor);
     }),
@@ -211,21 +170,40 @@ function createPopcorn(): BufferGeometry {
   return popcorn;
 }
 
+/**
+ * Bayangan lembut di bawah butir yang jatuh ke piring. Bayangan kontak utama (ContactShadows) jatuh di bawah
+ * piring, jadi tanpa ini butir-butir itu tampak melayang. Cakram datar: gelap di tengah, memudar ke tepi,
+ * sedikit bergeser menjauhi lampu utama (kiri-depan-atas).
+ */
+function createPlateShadows(): BufferGeometry {
+  return mergeParts(
+    popcornLayout()
+      .filter((kernel) => kernel.onPlate)
+      .map(({ center, radius }) => {
+        const disc = new CircleGeometry(radius * 1.35, 24);
+        disc.deleteAttribute("uv");
+        const position = disc.getAttribute("position");
+        const colors = new Float32Array(position.count * 4);
+        for (let i = 0; i < position.count; i++) {
+          const edge = Math.hypot(position.getX(i), position.getY(i)) / (radius * 1.35);
+          colors.set([1, 1, 1, 0.42 * (1 - edge) ** 1.5], i * 4);
+        }
+        disc.setAttribute("color", new BufferAttribute(colors, 4));
+        disc.rotateX(-Math.PI / 2);
+        const r = Math.hypot(center.x, center.z);
+        disc.translate(center.x + radius * 0.25, plateTopY(r) + 0.004, center.z - radius * 0.2);
+        return disc;
+      }),
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Biskuit Marie + remahan                                            */
 /* ------------------------------------------------------------------ */
 
-const BISCUIT_RADIUS = 0.45;
-const BISCUIT_HALF_THICKNESS = 0.033;
-const BISCUIT_EDGE = 0.026;
-// Posisi pangkal biskuit di permukaan karamel (sedikit di belakang tengah, seperti di foto)
-const BISCUIT_BASE = new Vector3(0.06, 0, -0.12);
-
 /** Cakram dengan tepi membulat & bergerigi halus, UV planar (tampak depan) untuk pola timbulnya. */
 function biscuitDisc(): BufferGeometry {
-  const R = BISCUIT_RADIUS;
-  const T = BISCUIT_HALF_THICKNESS;
-  const E = BISCUIT_EDGE;
+  const { radius: R, halfThickness: T, edge: E } = BISCUIT;
   // Profil dari tengah bawah → tepi → tengah atas (normal menghadap keluar)
   const profile = [new Vector2(1e-4, -T), new Vector2(R * 0.5, -T), new Vector2(R - E, -T)];
   for (let i = 1; i <= 8; i++) {
@@ -262,12 +240,11 @@ function biscuitDisc(): BufferGeometry {
   // Berdiri menghadap kamera (muka bermotif ke +z), condong ke belakang & sedikit menyerong,
   // hampir sepertiga bagian bawahnya tenggelam di karamel
   geometry.rotateX(Math.PI / 2);
-  geometry.rotateX(-0.18);
-  geometry.rotateY(-0.3);
-  const baseY = caramelTopY(Math.hypot(BISCUIT_BASE.x, BISCUIT_BASE.z));
-  geometry.translate(BISCUIT_BASE.x, baseY + R * 0.4, BISCUIT_BASE.z);
+  geometry.rotateX(-BISCUIT.tiltBack);
+  geometry.rotateY(BISCUIT.turn);
+  geometry.translate(BISCUIT_BASE.x, BISCUIT_BASE.y + R * BISCUIT.rise, BISCUIT_BASE.z);
   geometry.computeVertexNormals();
-  withAnchor(geometry, new Vector3(BISCUIT_BASE.x, baseY, BISCUIT_BASE.z));
+  withAnchor(geometry, BISCUIT_ANCHOR);
   geometry.computeBoundingSphere();
   return geometry;
 }
@@ -294,31 +271,14 @@ function crumb(seed: number, shade: number): BufferGeometry {
 }
 
 function createCrumbs(): BufferGeometry {
-  const rand = random(12072026);
-  const parts: BufferGeometry[] = [];
-  const add = (x: number, z: number, size: number) => {
-    const piece = crumb(parts.length * 3.7 + 1, 0.8 + rand() * 0.35);
-    const center = new Vector3(x, caramelTopY(Math.hypot(x, z)) + size * 0.22, z);
-    place(piece, center, new Euler(rand() * 0.6, rand() * 6.28, rand() * 0.6), new Vector3(size, size, size));
-    piece.computeVertexNormals();
-    parts.push(withAnchor(piece, center));
-  };
-
-  // Remahan kecil tersebar, lebih banyak di depan biskuit (menghadap kamera)
-  for (let i = 0; i < 34; i++) {
-    const r = 0.1 + Math.sqrt(rand()) * 0.52;
-    const angle = (rand() * 2 - 1) * Math.PI * 0.72;
-    add(Math.sin(angle) * r, Math.cos(angle) * r, 0.02 + rand() ** 2 * 0.05);
-  }
-  // Beberapa pecahan besar di dekat pangkal biskuit
-  for (const [x, z, size] of [
-    [-0.24, 0.02, 0.075],
-    [0.3, 0.06, 0.065],
-    [-0.05, 0.16, 0.058],
-  ] as const) {
-    add(x, z, size);
-  }
-  return mergeParts(parts);
+  return mergeParts(
+    crumbLayout().map(({ center, size, rotation, shade, seed }) => {
+      const piece = place(crumb(seed, shade), center, rotation, size);
+      piece.computeVertexNormals();
+      // Remahan tergeletak di permukaan: ikut bergeser di titiknya sendiri, tidak ikut condong
+      return withAnchor(piece, { ...center, lean: 0 });
+    }),
+  );
 }
 
 /** Pola timbul biskuit Marie di kanvas: warna (map) & tinggi (bumpMap), 128 = rata. */
@@ -330,7 +290,7 @@ function biscuitTextures(): { map: CanvasTexture; bump: CanvasTexture } {
     element.width = element.height = SIZE;
     return element;
   };
-  const rand = random(3052026);
+  const rand = seededRandom(3052026);
 
   // Lubang-lubang kecil khas biskuit Marie: satu cincin di tepi + beberapa di tengah
   const holes: [number, number][] = [];
@@ -428,8 +388,9 @@ function softenSilhouettes<T extends Material>(material: T): T {
   }`;
   material.onBeforeCompile = (shader, renderer) => {
     previous.call(material, shader, renderer);
+    // Setelah tonjolan permukaan diterapkan (lihat surfaceDetail.ts), sebelum normal clearcoat diturunkan darinya
     shader.fragmentShader = shader.fragmentShader
-      .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>\n${bend("normal")}`)
+      .replace("#include <clearcoat_normal_fragment_begin>", `${bend("normal")}\n#include <clearcoat_normal_fragment_begin>`)
       .replace(
         "#include <clearcoat_normal_fragment_maps>",
         `#include <clearcoat_normal_fragment_maps>\n#ifdef USE_CLEARCOAT\n${bend("clearcoatNormal")}\n#endif`,
@@ -450,31 +411,41 @@ export type ToppingSet = { parts: ToppingPart[]; dispose: () => void };
 
 const RIGID = { rigid: true } as const;
 
-export function createToppings(variant: ToppedVariant, uniforms: JiggleUniforms): ToppingSet {
+export function createToppings(variant: ToppedVariant, uniforms: JiggleUniforms, surface: SurfaceUniforms): ToppingSet {
   const parts: ToppingPart[] = [];
   const extra: { dispose: () => void }[] = [];
 
   if (variant === "popcorn") {
-    parts.push({
-      geometry: createPopcorn(),
-      material: softenSilhouettes(
-        applyJiggle(
-          // Lapisan karamel yang mengeras: mengilap (clearcoat) di atas butiran yang agak kasar,
-          // sheen keemasan menghangatkan tepi butir
-          new MeshPhysicalMaterial({
-            vertexColors: true,
-            roughness: 0.42,
-            clearcoat: 0.65,
-            clearcoatRoughness: 0.22,
-            sheen: 0.45,
-            sheenRoughness: 0.5,
-            sheenColor: new Color("#f3c27c"),
-          }),
-          uniforms,
-          RIGID,
+    parts.push(
+      {
+        geometry: createPopcorn(),
+        material: softenSilhouettes(
+          applyJiggle(
+            // Lapisan gula karamel yang keras & renyah: kilaunya tipis dan pecah-pecah oleh tekstur
+            // permukaan "popcorn" (surfaceDetail.ts), bukan licin mengilap seperti karamel pudingnya
+            new MeshPhysicalMaterial({
+              vertexColors: true,
+              roughness: 0.5,
+              clearcoat: 0.6,
+              clearcoatRoughness: 0.26,
+            }),
+            uniforms,
+            { rigid: true, surface: { kind: "popcorn", uniforms: surface } },
+          ),
         ),
-      ),
-    });
+      },
+      {
+        geometry: createPlateShadows(),
+        material: new MeshBasicMaterial({
+          color: new Color("#4a2e17"),
+          vertexColors: true,
+          transparent: true,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -2,
+        }),
+      },
+    );
   } else {
     const { map, bump } = biscuitTextures();
     extra.push(map, bump);

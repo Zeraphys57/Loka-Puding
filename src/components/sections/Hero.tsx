@@ -1,10 +1,11 @@
-import { PuddingFallback } from "@/components/three/PuddingFallback";
-import { PuddingStage } from "@/components/three/PuddingStage";
+import { HeroOrderButton, HeroPudding, HeroVariantTabs } from "@/components/sections/HeroPudding";
+import { HERO_VARIANTS, VARIANT_INFO, type HeroVariantItem } from "@/components/three/variants";
 import { ButtonLink } from "@/components/ui/Button";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { HandNote } from "@/components/ui/HandNote";
-import { ArrowDownIcon, WhatsAppIcon } from "@/components/ui/Icons";
-import { whatsappOrderLink } from "@/lib/whatsapp";
+import { ArrowDownIcon } from "@/components/ui/Icons";
+import { getMenuItems } from "@/lib/menu";
+import { whatsappItemLink } from "@/lib/whatsapp";
 
 /*
  * Hero editorial: "LEMBUT Lumer — [puding 3D] — BIKIN Nagih".
@@ -16,7 +17,21 @@ const WORD = "block font-display font-black leading-[0.82] tracking-[-0.035em] t
 const ACCENT =
   "block font-display font-wonky font-medium italic leading-[0.9] tracking-[-0.02em] text-caramel-500 normal-case";
 
+/** Satu entri per varian puding (Klasik, Regal, Popcorn): nama, harga, catatan & link pesan dari data menu. */
+function getHeroItems(): HeroVariantItem[] {
+  const menu = getMenuItems();
+  return HERO_VARIANTS.flatMap((variant) => {
+    const { menuId, short, alt } = VARIANT_INFO[variant];
+    const item = menu.find((entry) => entry.id === menuId);
+    return item
+      ? [{ variant, short, alt, name: item.name, priceLabel: item.priceLabel, note: item.note, orderHref: whatsappItemLink(item) }]
+      : [];
+  });
+}
+
 export function Hero() {
+  const heroItems = getHeroItems();
+
   return (
     <section id="home" aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-milk">
       <h1 id="hero-title" className="sr-only">
@@ -44,9 +59,9 @@ export function Hero() {
             </span>
           </p>
 
-          {/* Puding 3D (atau ilustrasi) */}
+          {/* Puding 3D (atau ilustrasi): bisa digeser untuk melihat varian lain */}
           <div className="relative z-10 mx-auto w-[min(100%,25rem,44svh)] sm:w-[min(100%,30rem,48svh)] lg:w-[min(40vw,60svh,42rem)]">
-            <PuddingStage fallback={<PuddingFallback className="h-full w-full" />} />
+            <HeroPudding items={heroItems} />
             <HandNote
               arrow="up-right"
               arrowSide="end"
@@ -54,6 +69,10 @@ export function Hero() {
             >
               colek aku!
             </HandNote>
+            <HeroVariantTabs
+              items={heroItems}
+              className="absolute -bottom-3 left-1/2 z-20 hidden -translate-x-1/2 animate-rise [animation-delay:650ms] lg:flex"
+            />
           </div>
 
           <p
@@ -92,12 +111,19 @@ export function Hero() {
           </p>
         </div>
 
+        {/* HP & tablet: pilihan varian di bawah judul (di desktop letaknya tepat di bawah puding) */}
+        <HeroVariantTabs
+          items={heroItems}
+          className="relative z-20 mt-6 flex justify-center animate-rise [animation-delay:350ms] lg:hidden"
+        />
+
         {/* Baris bawah: cerita singkat + tombol */}
-        <div className="relative z-20 mt-6 flex flex-col items-center gap-6 text-center md:mt-4 md:flex-row md:items-end md:justify-between md:text-left">
+        <div className="relative z-20 mt-5 flex flex-col items-center gap-6 text-center md:mt-8 md:flex-row md:items-end md:justify-between md:text-left lg:mt-4">
           <div className="flex max-w-md flex-col items-center gap-3 md:items-start">
-            <Eyebrow centered className="animate-rise [animation-delay:350ms] md:justify-start md:[&>span:last-child]:hidden">
-              Premium &amp; fresh
-            </Eyebrow>
+            {/* Di HP disembunyikan: tempatnya dipakai pilihan varian di atas */}
+            <div className="hidden animate-rise [animation-delay:350ms] md:block">
+              <Eyebrow>Premium &amp; fresh</Eyebrow>
+            </div>
             <p className="animate-rise text-[0.98rem] leading-relaxed text-ink-muted [animation-delay:450ms] sm:text-lg">
               Dibuat segar setiap pagi pakai susu asli dan saus karamel pilihan.
               <span className="hidden sm:inline"> Sekali suap, dijamin susah berhenti!</span>
@@ -109,11 +135,7 @@ export function Hero() {
               Lihat Menu
               <ArrowDownIcon />
             </ButtonLink>
-            <ButtonLink href={whatsappOrderLink()} external variant="outline" size="lg" className="flex-1 sm:flex-none">
-              <WhatsAppIcon />
-              <span className="sm:hidden">Pesan</span>
-              <span className="hidden sm:inline">Pesan via WhatsApp</span>
-            </ButtonLink>
+            <HeroOrderButton items={heroItems} className="flex-1 sm:flex-none" />
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { getLenis } from "@/lib/scroll";
 import { JIGGLE } from "./jiggle.config";
 import { applyJiggle, createJiggleUniforms, type JiggleUniforms } from "./jiggleShader";
 import { createPuddingGeometries, disposeGeometries } from "./puddingGeometry";
+import type { Nudge } from "./PuddingStage";
 import { PUDDING_TOP_Y } from "./puddingProfile";
 import { JiggleSimulation } from "./springs";
 import { applySurface, createSurfaceUniforms, type SurfaceUniforms } from "./surfaceDetail";
@@ -68,6 +69,8 @@ function createMaterials(uniforms: JiggleUniforms, surface: SurfaceUniforms) {
 type PuddingProps = {
   /** Bertambah setiap kali tombol "Colek pudingnya" (keyboard) ditekan → colekan di puncak */
   pokeSignal: number;
+  /** Dorongan ke samping (mis. saat meluncur masuk setelah berganti varian) */
+  nudge?: Nudge;
   /** Perangkat kewalahan: tonjolan mikro dimatikan (warna & bintik tetap) */
   lowQuality: boolean;
   /** Topping yang tampil (klasik = tanpa topping) */
@@ -77,7 +80,7 @@ type PuddingProps = {
 /** Bagian yang berubah setiap frame. Disimpan di ref: tidak memicu render ulang React. */
 type LiveState = { uniforms: JiggleUniforms; surface: SurfaceUniforms; sim: JiggleSimulation };
 
-export function Pudding({ pokeSignal, lowQuality, variant }: PuddingProps) {
+export function Pudding({ pokeSignal, nudge, lowQuality, variant }: PuddingProps) {
   // Aset GPU dibuat sekali; saat render hanya dibaca
   const assets = useMemo(() => {
     const uniforms = createJiggleUniforms(PUDDING_TOP_Y, JIGGLE.dent.radius);
@@ -86,12 +89,13 @@ export function Pudding({ pokeSignal, lowQuality, variant }: PuddingProps) {
   }, []);
   const { geometries, materials } = assets;
   // Topping memakai uniform goyangan yang sama, jadi ikut bergoyang bersama pudingnya
-  const toppings = useToppings(variant, assets.uniforms);
+  const toppings = useToppings(variant, assets.uniforms, assets.surface);
 
   const live = useRef<LiveState | null>(null);
   const hover = useRef({ active: false, leanX: 0, leanZ: 0, lastX: 0, lastZ: 0, tracking: false });
   const scroll = useRef<{ last: number | null; velocity: number }>({ last: null, velocity: 0 });
   const handledSignal = useRef(0);
+  const handledNudge = useRef(0);
 
   useEffect(() => {
     live.current = { uniforms: assets.uniforms, surface: assets.surface, sim: new JiggleSimulation(JIGGLE) };
@@ -137,6 +141,13 @@ export function Pudding({ pokeSignal, lowQuality, variant }: PuddingProps) {
     handledSignal.current = pokeSignal;
     poke(new Vector3(0.14, PUDDING_TOP_Y, 0.3), false);
   }, [pokeSignal, poke]);
+
+  // Puding yang baru meluncur masuk "tertinggal" lalu berayun, seperti piring yang didorong
+  useEffect(() => {
+    if (!nudge || nudge.id === handledNudge.current) return;
+    handledNudge.current = nudge.id;
+    live.current?.sim.pushSway(nudge.x * JIGGLE.impulse.slide, 0);
+  }, [nudge]);
 
   useFrame((frame, delta) => {
     const state = live.current;
