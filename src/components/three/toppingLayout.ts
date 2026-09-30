@@ -147,38 +147,110 @@ export const BISCUIT_ANCHOR: Anchor = { ...BISCUIT_BASE, lean: 1 };
 
 export type CrumbLayout = {
   center: Point3;
+  /** Titik tempel di permukaan karamel tepat di bawahnya (lihat jiggleShader.ts) */
+  anchor: Anchor;
+  /** Jari-jari pecahan (satuan dunia) */
   size: number;
+  /** Tebal pecahan: setebal biskuitnya; remahan kecil lebih gempal */
+  thickness: number;
   rotation: readonly [number, number, number];
-  /** Pengali kecerahan warna (remahan ada yang lebih matang) */
+  /** Pengali kecerahan warna (ada yang lebih matang) */
   shade: number;
+  /** Sisi patahan yang pucat menghadap ke atas (pecahannya terguling) */
+  broken: boolean;
+  /** Garis tepi pecahan yang bersudut: [sudut (radian), jarak relatif 0–1], urut melingkar */
+  outline: readonly (readonly [number, number])[];
   seed: number;
 };
 
+const BISCUIT_THICKNESS = BISCUIT.halfThickness * 2;
+
+// Gundukan remahan tepat di depan pangkal biskuit (menghadap kamera), seperti di foto menu
+const PILE = { x: 0.03, z: 0.2, spreadX: 0.4, spreadZ: 0.2, height: 0.03 };
+const pileHeight = (x: number, z: number) =>
+  PILE.height * Math.exp(-(((x - PILE.x) / PILE.spreadX) ** 2 + ((z - PILE.z) / PILE.spreadZ) ** 2));
+
+// Batas permukaan atas karamel yang masih datar (di luar ini tepinya membulat turun)
+const TOP_RADIUS = 0.6;
+
+/** Garis tepi pecahan biskuit: 4–7 sudut tak beraturan. */
+function chunkOutline(rand: () => number, corners: number): [number, number][] {
+  const start = rand() * Math.PI * 2;
+  return Array.from({ length: corners }, (_, i): [number, number] => [
+    start + ((i + 0.2 + rand() * 0.6) / corners) * Math.PI * 2,
+    0.6 + rand() * 0.4,
+  ]);
+}
+
+type Tier = {
+  count: number;
+  size: readonly [number, number];
+  /** Sebaran di sekitar gundukan [x, z]; `null` = tersebar di seluruh permukaan karamel */
+  spread: readonly [number, number] | null;
+  /** Kemiringan maksimum (radian) */
+  tilt: number;
+  /** Boleh menumpang di atas pecahan lain (kalau tidak, saling menjauh) */
+  stack: boolean;
+  corners: readonly [number, number];
+};
+
+// Dari pecahan besar sampai serbuk halus
+const TIERS: readonly Tier[] = [
+  { count: 11, size: [0.065, 0.1], spread: [0.42, 0.2], tilt: 0.35, stack: false, corners: [5, 7] },
+  { count: 22, size: [0.035, 0.06], spread: [0.46, 0.24], tilt: 0.9, stack: true, corners: [5, 6] },
+  { count: 44, size: [0.014, 0.03], spread: null, tilt: 1.4, stack: true, corners: [4, 6] },
+  { count: 60, size: [0.006, 0.012], spread: null, tilt: 1.6, stack: true, corners: [4, 5] },
+];
+
+/**
+ * Remahan biskuit: pecahan besar bersudut menumpuk di depan biskuit (sebagian menumpang di atas yang lain),
+ * remahan kecil & serbuk tersebar di seluruh permukaan karamel, paling banyak di sisi depan.
+ */
 export function crumbLayout(): CrumbLayout[] {
   const rand = seededRandom(12072026);
   const crumbs: CrumbLayout[] = [];
-  const add = (x: number, z: number, size: number) =>
-    crumbs.push({
-      center: onCaramel(x, z, size * 0.22),
-      size,
-      rotation: [rand() * 0.6, rand() * 6.28, rand() * 0.6],
-      shade: 0.8 + rand() * 0.35,
-      seed: crumbs.length * 3.7 + 1,
-    });
+  const placed: { x: number; z: number; size: number; top: number }[] = [];
 
-  // Remahan kecil tersebar, lebih banyak di depan biskuit (menghadap kamera)
-  for (let i = 0; i < 34; i++) {
-    const r = 0.1 + Math.sqrt(rand()) * 0.52;
-    const angle = (rand() * 2 - 1) * Math.PI * 0.72;
-    add(Math.sin(angle) * r, Math.cos(angle) * r, 0.02 + rand() ** 2 * 0.05);
-  }
-  // Beberapa pecahan besar di dekat pangkal biskuit
-  for (const [x, z, size] of [
-    [-0.24, 0.02, 0.075],
-    [0.3, 0.06, 0.065],
-    [-0.05, 0.16, 0.058],
-  ] as const) {
-    add(x, z, size);
+  const pick = (spread: Tier["spread"]): [number, number] => {
+    const angle = rand() * Math.PI * 2;
+    const dist = Math.sqrt(rand());
+    if (spread) return [PILE.x + Math.cos(angle) * dist * spread[0], PILE.z + Math.sin(angle) * dist * spread[1]];
+    // Seluruh permukaan, ±70% di separuh depan
+    const r = dist * TOP_RADIUS * 0.97;
+    const a = rand() < 0.7 ? (rand() - 0.5) * Math.PI : angle;
+    return [Math.sin(a) * r, Math.cos(a) * r];
+  };
+
+  for (const tier of TIERS) {
+    let left = tier.count;
+    for (let attempt = 0; left > 0 && attempt < tier.count * 40; attempt++) {
+      const size = tier.size[0] + rand() * (tier.size[1] - tier.size[0]);
+      const [x, z] = pick(tier.spread);
+      if (Math.hypot(x, z) + size > TOP_RADIUS) continue;
+      // Tidak menembus biskuit yang berdiri
+      if (Math.abs(z - BISCUIT_BASE.z) < 0.05 + size && Math.abs(x - BISCUIT_BASE.x) < BISCUIT.radius * 0.95) continue;
+
+      const touching = placed.filter((other) => Math.hypot(x - other.x, z - other.z) < (other.size + size) * 0.72);
+      if (!tier.stack && touching.length) continue;
+      const restOn = touching.reduce((top, other) => Math.max(top, other.top), 0);
+      // Pipih seperti pecahan biskuit sungguhan; remahan kecil lebih gempal
+      const thickness = Math.min(BISCUIT_THICKNESS * 0.85, size * 0.7);
+      // Pecahan besar agak tenggelam di karamel; yang lain menumpang di gundukan / pecahan di bawahnya
+      const base = tier.stack ? Math.max(pileHeight(x, z) * 0.6, restOn * 0.9) : pileHeight(x, z) * 0.45 - thickness * 0.25;
+      placed.push({ x, z, size, top: base + thickness });
+      crumbs.push({
+        center: onCaramel(x, z, base + thickness / 2),
+        anchor: { ...onCaramel(x, z, 0), lean: 0 },
+        size,
+        thickness,
+        rotation: [(rand() - 0.5) * tier.tilt, rand() * Math.PI * 2, (rand() - 0.5) * tier.tilt],
+        shade: 0.86 + rand() * 0.28,
+        broken: rand() < (tier.stack ? 0.3 : 0.15),
+        outline: chunkOutline(rand, tier.corners[0] + Math.floor(rand() * (tier.corners[1] - tier.corners[0] + 1))),
+        seed: crumbs.length + 1,
+      });
+      left--;
+    }
   }
   return crumbs;
 }

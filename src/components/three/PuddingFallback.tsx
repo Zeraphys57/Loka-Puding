@@ -206,26 +206,12 @@ const kernels = popcornLayout()
   })
   .sort((a, b) => b.depth - a.depth);
 
-/** Biskuit Marie berdiri: siluet bergerigi, cincin timbul, lubang-lubang kecil, tulisan timbul. */
+/** Biskuit Regal Marie berdiri: siluet bergerigi, pinggiran bermotif, tulisan timbul "REGAL" & "MARIE". */
 const biscuit = (() => {
   const c = projectScaled({ x: BISCUIT_BASE.x, y: BISCUIT_BASE.y + BISCUIT.radius * BISCUIT.rise, z: BISCUIT_BASE.z });
   const rx = BISCUIT.radius * c.scale * Math.cos(BISCUIT.turn);
   const ry = BISCUIT.radius * c.scale * 0.99;
   const at = (fx: number, fy: number): Vec2 => [round(c.x + fx * rx), round(c.y + fy * ry)];
-  const holes: Vec2[] = Array.from({ length: 36 }, (_, i) => {
-    const a = (i / 36) * Math.PI * 2;
-    return at(Math.cos(a) * 0.9, Math.sin(a) * 0.9);
-  });
-  for (const [fx, fy] of [
-    [-0.42, -0.36],
-    [0, -0.44],
-    [0.42, -0.36],
-    [-0.42, 0.36],
-    [0, 0.44],
-    [0.42, 0.36],
-  ]) {
-    holes.push(at(fx, fy));
-  }
   const outline = Array.from({ length: 88 }, (_, i): Vec2 => {
     const a = (i / 88) * Math.PI * 2;
     const k = 1 + 0.014 * Math.cos(44 * a);
@@ -237,31 +223,48 @@ const biscuit = (() => {
     rx: round(rx),
     ry: round(ry),
     outline: smoothClosed(outline),
-    holes,
-    holeRadius: round(rx * 0.026),
-    fontSize: round(ry * 0.36),
+    fontSize: round(ry * 0.3),
+    // "REGAL" mengikuti busur di atas "MARIE" (sama seperti tekstur model 3D)
+    arc: `M${at(-0.5, -0.09).join(" ")}A${round(rx * 1.03)} ${round(ry * 1.03)} 0 0 1 ${at(0.5, -0.09).join(" ")}`,
+    marieY: round(c.y + ry * 0.2),
     // Bagian di bawah permukaan karamel tidak terlihat (tenggelam)
     waterline: round(projectScaled(BISCUIT_BASE).y),
   };
 })();
 
-const crumbs = crumbLayout().map(({ center, size, shade, seed }) => {
-  const p = projectScaled(center);
-  const r = size * p.scale;
-  const rand = seededRandom(Math.round(seed * 100) + 3);
-  const corners = Array.from({ length: 6 }, (_, i) => {
-    const a = (i / 6) * Math.PI * 2 + rand() * 0.6;
-    const k = 0.65 + rand() * 0.5;
-    return `${round(p.x + Math.cos(a) * r * k)} ${round(p.y + Math.sin(a) * r * k * 0.7)}`;
+// Warna remahan sama dengan model 3D: permukaan terpanggang, bagian dalam yang pucat, sisi patahan
+const CRUMB_TONES = { baked: [192, 127, 62], inside: [232, 201, 146], side: [206, 164, 104] } as const;
+
+/**
+ * Pecahan biskuit: permukaan atas (poligon bersudut, dilihat miring dari atas) di atas "tebal"-nya,
+ * yaitu poligon yang sama digeser ke bawah dengan warna sisi patahan. Serbuk halus cukup titik kecil.
+ */
+const crumbs = crumbLayout()
+  .sort((a, b) => a.center.z - b.center.z)
+  .map(({ center, size, thickness, rotation, shade, broken, outline, seed }) => {
+    const p = projectScaled(center);
+    const r = size * p.scale;
+    const tone = ([red, green, blue]: readonly [number, number, number]) =>
+      `rgb(${[red, green, blue].map((value) => Math.round(Math.min(255, value * shade))).join(",")})`;
+    const behindBiscuit = center.z < BISCUIT_BASE.z;
+    if (size < 0.013) {
+      return { id: seed, behindBiscuit, dust: { cx: round(p.x), cy: round(p.y), r: round(Math.max(r * 0.8, 0.5)), fill: tone(CRUMB_TONES.inside) } };
+    }
+    // Makin miring pecahannya, makin terlihat permukaannya dari kamera (elevasi ±18°)
+    const squash = Math.min(0.95, 0.4 + Math.abs(rotation[0]) * 0.45 + Math.abs(rotation[2]) * 0.3);
+    const corners = outline.map(([angle, k]): Vec2 => [
+      p.x + Math.cos(angle + rotation[1]) * r * k,
+      p.y + Math.sin(angle + rotation[1]) * r * k * squash,
+    ]);
+    const drop = thickness * p.scale * (1.05 - squash * 0.55);
+    const polygon = (dy: number) => `M${corners.map(([x, y]) => `${round(x)} ${round(y + dy)}`).join("L")}Z`;
+    return {
+      id: seed,
+      behindBiscuit,
+      side: { d: polygon(drop), fill: tone(CRUMB_TONES.side) },
+      top: { d: polygon(0), fill: tone(broken ? CRUMB_TONES.inside : CRUMB_TONES.baked) },
+    };
   });
-  const tone = (value: number) => Math.round(Math.min(255, value * shade));
-  return {
-    id: seed,
-    d: `M${corners.join("L")}Z`,
-    fill: `rgb(${tone(197)},${tone(143)},${tone(82)})`,
-    behindBiscuit: center.z < BISCUIT_BASE.z,
-  };
-});
 
 type PuddingFallbackProps = {
   className?: string;
@@ -294,35 +297,58 @@ function Kernel({ kernel }: { kernel: (typeof kernels)[number] }) {
 function Crumbs({ behindBiscuit }: { behindBiscuit: boolean }) {
   return crumbs
     .filter((crumb) => crumb.behindBiscuit === behindBiscuit)
-    .map((crumb) => <path key={crumb.id} d={crumb.d} fill={crumb.fill} />);
+    .map((crumb) =>
+      crumb.dust ? (
+        <circle key={crumb.id} {...crumb.dust} />
+      ) : (
+        <g key={crumb.id}>
+          <path d={crumb.side.d} fill={crumb.side.fill} />
+          <path d={crumb.top.d} fill={crumb.top.fill} stroke="#8a5320" strokeOpacity=".22" strokeWidth=".4" strokeLinejoin="round" />
+        </g>
+      ),
+    );
 }
 
 function Biscuit() {
   const { cx, cy, rx, ry } = biscuit;
-  const textY = round(cy + ry * 0.13);
   const text = {
-    x: cx,
     textAnchor: "middle",
     fontFamily: "Georgia, 'Times New Roman', serif",
     fontWeight: 700,
     fontSize: biscuit.fontSize,
   } as const;
+  const lettering = (dy: number, fill: string, opacity: number) => (
+    <g transform={`translate(0 ${dy})`} fill={fill} opacity={opacity}>
+      <text {...text} fontSize={round(biscuit.fontSize * 0.8)} letterSpacing=".6">
+        <textPath href="#pf-biscuit-arc" startOffset="50%">
+          REGAL
+        </textPath>
+      </text>
+      <text {...text} x={cx} y={biscuit.marieY} letterSpacing=".8">
+        MARIE
+      </text>
+    </g>
+  );
   return (
     <g clipPath="url(#pf-biscuit-clip)">
       <path d={biscuit.outline} fill="url(#pf-biscuit)" stroke="#a86a30" strokeOpacity=".55" strokeWidth="1.1" />
-      <ellipse cx={cx} cy={round(cy + 0.8)} rx={round(rx * 0.8)} ry={round(ry * 0.8)} fill="none" stroke="#9c6531" strokeOpacity=".35" strokeWidth="1.4" />
-      <ellipse cx={cx} cy={cy} rx={round(rx * 0.8)} ry={round(ry * 0.8)} fill="none" stroke="#f3d2a0" strokeOpacity=".7" strokeWidth="1.4" />
-      <g fill="#8a5320" opacity=".55">
-        {biscuit.holes.map(([x, y]) => (
-          <circle key={`${x}-${y}`} cx={x} cy={y} r={biscuit.holeRadius} />
-        ))}
+      {/* Pinggiran bermotif: dua cincin timbul mengapit deretan kait (motif kunci Yunani) */}
+      <g fill="none" stroke="#9c6531" strokeOpacity=".4">
+        <ellipse cx={cx} cy={cy} rx={round(rx * 0.93)} ry={round(ry * 0.93)} strokeWidth="1" />
+        <ellipse cx={cx} cy={cy} rx={round(rx * 0.8)} ry={round(ry * 0.8)} strokeWidth="1" />
+        <ellipse
+          cx={cx}
+          cy={cy}
+          rx={round(rx * 0.865)}
+          ry={round(ry * 0.865)}
+          strokeWidth={round(ry * 0.09)}
+          strokeDasharray="1.6 1.3"
+          strokeOpacity=".32"
+        />
       </g>
-      <text {...text} y={round(textY + 0.9)} fill="#8d5626" opacity=".35">
-        MARIE
-      </text>
-      <text {...text} y={textY} fill="#f6d8a6" opacity=".75">
-        MARIE
-      </text>
+      <path id="pf-biscuit-arc" d={biscuit.arc} fill="none" />
+      {lettering(0.9, "#8d5626", 0.35)}
+      {lettering(0, "#f6d8a6", 0.75)}
     </g>
   );
 }
