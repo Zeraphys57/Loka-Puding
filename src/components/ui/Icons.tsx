@@ -234,3 +234,138 @@ export function BookHeartIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/* Ikon Dapur (catatan toko: pre-order, pembukuan, bahan) */
+
+export function PlusIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </Icon>
+  );
+}
+
+export function MinusIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 12h14" />
+    </Icon>
+  );
+}
+
+export function CheckIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </Icon>
+  );
+}
+
+export function PencilIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 20l1-4.2L16.6 4.2a1.7 1.7 0 0 1 2.4 0l.8.8a1.7 1.7 0 0 1 0 2.4L8.2 19z" />
+      <path d="m14.5 6.5 3 3" />
+    </Icon>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 7h14" />
+      <path d="M9.5 7V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2" />
+      <path d="m7 7 .8 12a1.5 1.5 0 0 0 1.5 1.4h5.4a1.5 1.5 0 0 0 1.5-1.4L17 7" />
+      <path d="M10.5 11v5.5M13.5 11v5.5" />
+    </Icon>
+  );
+}
+
+export function AlertIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 4.5 3.5 19h17z" />
+      <path d="M12 10v4.2" />
+      <path d="M12 16.8h.01" strokeWidth={2.6} />
+    </Icon>
+  );
+}
+
+/** Lembar catatan (pembukuan) */
+export function LedgerIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="5" y="3.5" width="14" height="17" rx="2.5" />
+      <path d="M9 8.5h6" />
+      <path d="M9 12h6" />
+      <path d="M9 15.5h3.5" />
+    </Icon>
+  );
+}
+
+export function CoinIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M14.6 9.8c-.4-.8-1.4-1.3-2.6-1.3-1.5 0-2.6.7-2.6 1.8s1 1.5 2.6 1.7 2.6.7 2.6 1.8-1.1 1.8-2.6 1.8c-1.2 0-2.2-.5-2.6-1.3" />
+      <path d="M12 7v10" />
+    </Icon>
+  );
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2.5" />
+      <path d="M4 10h16" />
+      <path d="M8.5 3.5v4M15.5 3.5v4" />
+    </Icon>
+  );
+}
+
+export function TruckIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3 6.5h10.5v10H3z" />
+      <path d="M13.5 10h3.8l3.2 3.2v3.3h-7" />
+      <circle cx="7.5" cy="17.5" r="1.8" />
+      <circle cx="16.8" cy="17.5" r="1.8" />
+    </Icon>
+  );
+}
+
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m14.5 6-6 6 6 6" />
+    </Icon>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m9.5 6 6 6-6 6" />
+    </Icon>
+  );
+}
+
+export function DownloadIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 4.5v10" />
+      <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
+      <path d="M5 19.5h14" />
+    </Icon>
+  );
+}
+
+export function SearchIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </Icon>
+  );
+}
