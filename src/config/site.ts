@@ -52,27 +52,29 @@ export const siteConfig = {
     },
   },
 
-  // TODO: alamat toko asli
+  // TODO: lengkapi nomor rumah / patokan di `street` (mis. "Jl. Purwomartani No. 12")
   address: {
-    street: "Jl. Contoh Manis No. 12",
-    locality: "Kel. Contoh, Kec. Contoh",
-    city: "Kota Contoh",
-    region: "Jawa Barat",
-    postalCode: "40000",
+    street: "Jl. Purwomartani",
+    locality: "Kalasan",
+    city: "Sleman",
+    region: "DI Yogyakarta",
+    postalCode: "55571",
     country: "ID",
   },
 
+  // Saat ini titik tengah Kalurahan Purwomartani, belum titik tokonya.
   // TODO: koordinat toko (klik kanan lokasi di Google Maps → salin angka koordinat)
   geo: {
-    latitude: -6.2,
-    longitude: 106.816666,
+    latitude: -7.7615903,
+    longitude: 110.4563842,
   },
 
+  // Saat ini peta menunjuk Jalan Purwomartani secara umum, belum pin tokonya.
   maps: {
-    // TODO: Google Maps → Bagikan → Sematkan peta → salin URL di dalam src="..."
-    embedUrl: "https://www.google.com/maps?q=Jakarta&z=13&output=embed",
-    // TODO: Google Maps → Bagikan → Salin link
-    link: "https://maps.google.com/?q=Jakarta",
+    // TODO: Google Maps → cari toko → Bagikan → Sematkan peta → salin URL di dalam src="..."
+    embedUrl: "https://www.google.com/maps?q=Jl.+Purwomartani,+Kalasan,+Sleman,+Yogyakarta&z=15&output=embed",
+    // TODO: Google Maps → cari toko → Bagikan → Salin link
+    link: "https://maps.google.com/?q=Jl.+Purwomartani,+Kalasan,+Sleman,+Yogyakarta",
   },
 
   /**
