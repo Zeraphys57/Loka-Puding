@@ -1,7 +1,7 @@
 import { HeroOrderButton, HeroPudding, HeroVariantTabs } from "@/components/sections/HeroPudding";
 import { HERO_VARIANTS, VARIANT_INFO, type HeroVariantItem } from "@/components/three/variants";
 import { ButtonLink } from "@/components/ui/Button";
-import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Eyebrow, EyebrowMark } from "@/components/ui/Eyebrow";
 import { ArrowDownIcon } from "@/components/ui/Icons";
 import { getMenuItems } from "@/lib/menu";
 import { whatsappItemLink } from "@/lib/whatsapp";
@@ -46,8 +46,8 @@ export function Hero() {
             aria-hidden="true"
             className="relative z-20 -mb-[clamp(1.5rem,6svh,3rem)] animate-rise text-center mix-blend-multiply lg:mb-0 lg:-mr-[4.5vw] lg:text-left"
           >
-            <span className="mb-4 hidden items-center gap-3 text-xs font-bold tracking-[0.22em] text-caramel-700 uppercase lg:flex">
-              <span className="h-px w-10 bg-caramel-500/60" />
+            <span className="mb-4 hidden items-center gap-2.5 text-xs font-bold tracking-[0.22em] text-caramel-700 uppercase lg:flex">
+              <EyebrowMark className="text-caramel-500" />
               Signature dish
             </span>
             <span className={`${WORD} text-[clamp(3.1rem,15vw,4.6rem)] lg:text-[clamp(4.25rem,min(7.2vw,13svh),7.5rem)]`}>
@@ -96,9 +96,9 @@ export function Hero() {
                 </svg>
               </span>
             </span>
-            <span className="mt-5 hidden items-center justify-end gap-3 text-xs font-bold tracking-[0.22em] text-caramel-700 uppercase lg:flex">
+            <span className="mt-5 hidden items-center justify-end gap-2.5 text-xs font-bold tracking-[0.22em] text-caramel-700 uppercase lg:flex">
               Resep keluarga
-              <span className="h-px w-10 bg-caramel-500/60" />
+              <EyebrowMark className="text-caramel-500" />
             </span>
           </p>
         </div>
