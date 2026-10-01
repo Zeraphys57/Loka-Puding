@@ -35,8 +35,8 @@ export function MenuCatalog() {
             </span>
           </h2>
           <p className="mt-7 max-w-2xl text-lg leading-relaxed text-ink-muted sm:text-xl">
-            Puding sutra yang dibuat fresh setiap hari. Pilih favoritmu, lalu tekan <strong className="font-bold text-espresso">Pesan</strong>:
-            WhatsApp langsung terbuka dengan pesananmu.
+            Puding sutra yang dibuat fresh setiap hari. Pilih favoritmu, buka detailnya, lalu tekan{" "}
+            <strong className="font-bold text-espresso">Pesan</strong>: WhatsApp langsung terbuka dengan pesananmu.
           </p>
           <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-caramel-50 px-4 py-2 text-sm font-semibold text-caramel-700 ring-1 ring-caramel-200">
             <WhatsAppIcon className="size-4" />

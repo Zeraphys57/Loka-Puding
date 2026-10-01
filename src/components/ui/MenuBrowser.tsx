@@ -2,18 +2,17 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { EmptyImage } from "@/components/ui/EmptyImage";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { FilterPills } from "@/components/ui/FilterPills";
 import { HandNote } from "@/components/ui/HandNote";
-import { InstagramIcon, WhatsAppIcon } from "@/components/ui/Icons";
+import { ArrowRightIcon, InstagramIcon } from "@/components/ui/Icons";
 import { MenuDialog } from "@/components/ui/MenuDialog";
 import { PriceSticker } from "@/components/ui/PriceSticker";
 import type { UpcomingMenu } from "@/data/menu";
 import { cn } from "@/lib/cn";
 import type { MenuCategoryView, MenuItemView } from "@/lib/menu";
-import { whatsappItemLink } from "@/lib/whatsapp";
 
 const ALL = "semua";
 
@@ -149,20 +148,16 @@ export function MenuBrowser({ items, categories, upcoming, instagram }: MenuBrow
                   </h3>
                   <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-muted sm:text-xl">{item.description}</p>
 
-                  <div className={cn("mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-4", flip ? "lg:justify-end" : "lg:justify-start")}>
-                    {item.available ? (
-                      <ButtonLink href={whatsappItemLink(item)} external variant="primary" size="lg">
-                        <WhatsAppIcon />
-                        Pesan sekarang
-                      </ButtonLink>
-                    ) : null}
-                    <button
-                      type="button"
+                  {/* Satu aksi per menu: buka detail. Tombol pesan WhatsApp ada di dalam jendela detail. */}
+                  <div className={cn("mt-9 flex justify-center", flip ? "lg:justify-end" : "lg:justify-start")}>
+                    <Button
+                      variant={item.available ? "primary" : "soft"}
+                      size="lg"
                       onClick={(event) => openItem(item, event.currentTarget)}
-                      className="rounded-full px-1 py-2 font-bold text-caramel-700 underline decoration-caramel-300 decoration-2 underline-offset-[6px] transition-colors hover:text-caramel-800 hover:decoration-caramel-500"
                     >
                       {item.available ? "Lihat detail" : "Detail & info restock"}
-                    </button>
+                      <ArrowRightIcon />
+                    </Button>
                   </div>
                 </div>
               </article>

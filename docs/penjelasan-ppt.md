@@ -35,7 +35,7 @@ Website ini punya dua sisi. Sisi depan adalah etalase: pembeli mengenal Loka Pud
 - Lokasi: tahu alamat dan jam buka
 
 **Narasi**
-Urutan bagian di halaman mengikuti cara orang memutuskan membeli: tertarik dulu, lalu percaya, lalu memilih, baru memesan. Pembeli tidak perlu membuat akun. Cukup satu ketukan dan WhatsApp terbuka dengan nama menu dan harganya.
+Urutan bagian di halaman mengikuti cara orang memutuskan membeli: tertarik dulu, lalu percaya, lalu memilih, baru memesan. Pembeli tidak perlu membuat akun. Dari detail menu, tombol Pesan membuka WhatsApp dengan nama menu dan harganya sudah tertulis.
 
 **Gambar**: diagram 5 langkah, atau potongan kecil tiap bagian berjajar.
 
@@ -94,12 +94,12 @@ Bagian Tentang tidak ditulis sebagai paragraf panjang. Halamannya dibuat seperti
 **Isi slide**
 - Tiga menu: Puding Karamel Rp 10.000, Topping Regal Rp 13.000, Topping Popcorn Karamel Rp 15.000
 - Foto besar, stiker harga, dan catatan tangan di tiap menu
-- "Pesan sekarang": WhatsApp terbuka dengan nama menu dan harga
-- "Lihat detail": jendela berisi deskripsi lengkap
+- "Lihat detail": jendela berisi foto, deskripsi lengkap, dan harga
+- Di dalam detail, "Pesan Menu Ini": WhatsApp terbuka dengan nama menu dan harga
 - "Menu lainnya menyusul" untuk varian baru
 
 **Narasi**
-Tiap menu tampil bergantian kiri dan kanan seperti halaman majalah. Tombol Pesan langsung membuka WhatsApp dengan pesan yang sudah terisi, jadi pembeli tidak perlu mengetik ulang. Menu yang habis otomatis ditandai. Menambah menu cukup dari satu berkas data, tanpa mengubah desain.
+Tiap menu tampil bergantian kiri dan kanan seperti halaman majalah, dengan satu tombol saja: Lihat detail. Dari jendela detail, tombol Pesan membuka WhatsApp dengan pesan yang sudah terisi, jadi pembeli tidak perlu mengetik ulang. Menu yang habis otomatis ditandai. Menambah menu cukup dari satu berkas data, tanpa mengubah desain.
 
 **Gambar**: satu menu lengkap dengan stiker harga, dan jendela detail menu.
 
