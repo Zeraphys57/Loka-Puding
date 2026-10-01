@@ -127,7 +127,8 @@ export function Hero() {
               Lihat Menu
               <ArrowDownIcon />
             </ButtonLink>
-            <HeroOrderButton items={heroItems} className="flex-1 sm:flex-none" />
+            {/* Hanya di HP & tablet: di desktop tombol Pesan sudah selalu ada di navbar */}
+            <HeroOrderButton items={heroItems} className="flex-1 sm:flex-none lg:hidden" />
           </div>
         </div>
       </div>

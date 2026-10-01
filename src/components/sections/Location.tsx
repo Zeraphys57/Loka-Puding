@@ -3,11 +3,10 @@
 import { useRef } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { HandNote } from "@/components/ui/HandNote";
-import { ArrowUpRightIcon, ClockIcon, MapPinIcon, WhatsAppIcon } from "@/components/ui/Icons";
+import { ArrowUpRightIcon, ClockIcon, MapPinIcon } from "@/components/ui/Icons";
 import { siteConfig } from "@/config/site";
 import { formatTime } from "@/lib/format";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { whatsappOrderLink } from "@/lib/whatsapp";
 
 /*
  * Desktop (≥1024px & gerakan diizinkan): section menempel di layar, lingkaran peta membesar
@@ -166,34 +165,21 @@ export function Location() {
               </div>
             </div>
 
+            {/* Satu aksi saja di sini: petunjuk arah. Tombol pesan ada di navbar, tiap menu, dan footer. */}
             <div className="flex flex-1 flex-col justify-center gap-4">
               <a
-                href={whatsappOrderLink()}
+                href={maps.link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-between gap-4 rounded-[1.75rem] bg-caramel-600 p-6 text-white shadow-sticker transition-transform duration-500 ease-jelly hover:-translate-y-1 sm:p-7"
               >
                 <span>
-                  <span className="block font-display text-2xl font-bold sm:text-3xl">Chat WhatsApp</span>
+                  <span className="block font-display text-2xl font-bold sm:text-3xl">Petunjuk arah</span>
                   <span className="mt-1 block text-xs font-bold tracking-[0.18em] text-caramel-50 uppercase">
-                    Pesan &amp; tanya stok
+                    Buka di Google Maps
                   </span>
                 </span>
-                <WhatsAppIcon className="size-10 shrink-0 transition-transform duration-500 ease-jelly group-hover:rotate-12 sm:size-12" />
-              </a>
-              <a
-                href={maps.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center justify-between gap-4 rounded-[1.75rem] bg-milk-50/5 p-6 ring-1 ring-milk-50/15 transition-colors hover:bg-milk-50/10"
-              >
-                <span>
-                  <span className="block font-display text-xl font-bold sm:text-2xl">Buka di Google Maps</span>
-                  <span className="mt-1 block text-xs font-bold tracking-[0.18em] text-milk-50/70 uppercase">
-                    Petunjuk arah ke dapur
-                  </span>
-                </span>
-                <ArrowUpRightIcon className="size-7 shrink-0 text-caramel-300 transition-transform duration-500 ease-jelly group-hover:translate-x-1 group-hover:-translate-y-1" />
+                <ArrowUpRightIcon className="size-9 shrink-0 transition-transform duration-500 ease-jelly group-hover:translate-x-1 group-hover:-translate-y-1 sm:size-10" />
               </a>
             </div>
           </div>

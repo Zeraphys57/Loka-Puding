@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties } from "react";
-import { ArrowRightIcon, InstagramIcon, TikTokIcon, WhatsAppIcon } from "@/components/ui/Icons";
+import { ArrowRightIcon, InstagramIcon, TikTokIcon } from "@/components/ui/Icons";
 import { navLinks, siteConfig } from "@/config/site";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/cn";
 import { dripMaskUrl } from "@/lib/drip";
 import { EASE, gsap, useGSAP } from "@/lib/gsap";
 import { lockScroll, unlockScroll } from "@/lib/scroll";
-import { whatsappOrderLink } from "@/lib/whatsapp";
 
 type MobileMenuProps = {
   open: boolean;
@@ -142,16 +141,8 @@ export function MobileMenu({ open, activeId, onClose }: MobileMenuProps) {
             </ul>
           </nav>
 
-          <div data-menu-item className="flex flex-col gap-5 px-6 pt-3 pb-8 sm:px-8">
-            <a
-              href={whatsappOrderLink()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-pudding-cream text-base font-bold text-pudding-caramel-800 shadow-[inset_0_-3px_0_rgb(90_44_13/0.18)] transition-[background-color,scale] duration-500 ease-jelly hover:bg-white active:scale-[0.97] sm:text-lg [&_svg]:size-[1.2em]"
-            >
-              <WhatsAppIcon />
-              Pesan via WhatsApp
-            </a>
+          {/* Tanpa tombol pesan: di HP tombol Pesan sudah selalu ada di halaman (hero, lalu tombol melayang) */}
+          <div data-menu-item className="px-6 pt-3 pb-8 sm:px-8">
             <div className="flex items-center justify-center gap-3">
               <a
                 href={siteConfig.social.instagram.url}
