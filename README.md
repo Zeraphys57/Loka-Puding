@@ -143,6 +143,64 @@ Puding di bagian atas halaman adalah model 3D yang **bergoyang saat dicolek**, c
 
 ---
 
+## Dapur: catatan toko (pre-order, pembukuan, stok bahan) → `/dapur`
+
+Dapur dipakai **online**: catatan yang sama terbuka dari HP maupun laptop, lewat alamat website + `/dapur`.
+
+| Halaman | Isinya |
+|---|---|
+| **Ringkasan** | Laba bulan ini, tagihan yang belum dibayar, pesanan yang harus disiapkan seminggu ke depan, stok yang menipis |
+| **Pre-order** | Catat pesanan (menu, tanggal ambil/antar, ongkir, potongan), ubah status Baru → Sedang dibuat → Siap → Selesai, catat DP & pelunasan, chat WhatsApp pelanggan dengan rangkuman pesanan |
+| **Pembukuan** | Uang masuk & keluar per bulan, laba, saldo kas, pengeluaran per kategori, unduh CSV untuk Excel |
+| **Bahan** | Stok bahan/kemasan, catat belanja & pemakaian (beberapa bahan sekaligus), koreksi stok, tanda menipis/habis |
+
+Yang dicatat sekali muncul di semua tempat: **pembayaran pre-order** dan **belanja bahan** otomatis masuk Pembukuan. Daftar menu dan harganya diambil dari `src/data/menu.ts`; pesanan lama tetap memakai harga saat dipesan.
+
+### Tanpa login: pakai link rahasia
+
+Dapur tidak punya halaman login. Gantinya ada satu **link rahasia**:
+
+```
+https://alamat-website-anda/dapur/buka?kunci=KUNCI-ANDA
+```
+
+- Buka link itu **sekali** di HP atau laptop → perangkat itu diingat (sekitar setahun), dan selanjutnya cukup buka `/dapur`.
+- Perangkat yang belum pernah membuka link itu hanya melihat **404**, seolah halamannya tidak ada.
+- **Perlakukan link ini seperti kunci toko.** Siapa pun yang memegangnya bisa melihat data pelanggan dan mengubah pembukuan. Simpan di tempat pribadi (mis. "Pesan Tersimpan" WhatsApp), jangan dikirim ke grup.
+- Pinjam HP orang lain? Setelah selesai, tekan **Kunci perangkat ini** di bagian bawah Dapur.
+- Link bocor atau HP hilang? Ganti `DAPUR_KEY` di Vercel lalu deploy ulang: semua perangkat lama langsung terkunci, dan link baru memakai kunci yang baru.
+
+### Menyalakan Dapur di Vercel (sekali saja)
+
+Repo ini publik, jadi kunci dan alamat database **tidak pernah ditulis di kode**. Keduanya disimpan di Vercel:
+
+1. **Database (Supabase).** Pilih salah satu:
+   - *Paling mudah:* di dashboard Vercel buka proyek ini → tab **Storage** → **Create Database** → **Supabase** → region **Singapore** → sambungkan ke proyek. Vercel otomatis mengisi `POSTGRES_URL`.
+   - *Sudah punya proyek Supabase:* di dashboard Supabase klik **Connect** → salin connection string **Transaction pooler** (port `6543`, bukan "Direct connection") → di Vercel **Settings → Environment Variables** tambah `DATABASE_URL` berisi string itu, dengan password-nya sudah diisi.
+
+   Tidak perlu membuat tabel: Dapur menyiapkannya sendiri saat pertama kali dibuka.
+2. **Kunci.** Di komputer, jalankan `npm run dapur:kunci` untuk membuat kunci acak. Di Vercel: **Settings → Environment Variables** → tambah `DAPUR_KEY` dengan nilai kunci itu (centang Production). Kunci di bawah 20 huruf ditolak.
+3. **Deploy ulang** (push ke GitHub, atau tombol Redeploy di Vercel).
+4. Buka link rahasia di HP dan laptop Anda. Selesai.
+
+Kalau Dapur menampilkan "belum tersambung ke database", langkah 1 belum selesai atau belum di-deploy ulang.
+
+### Datanya di mana?
+
+- Di database Supabase tadi, dalam satu dokumen (tabel `dapur.store`). Salinan harian otomatis disimpan di tabel `dapur.backup` (30 hari terakhir).
+- Tabelnya sengaja di schema **`dapur`**, bukan `public`, dan Row Level Security-nya aktif: API bawaan Supabase (yang bisa dipakai siapa pun yang memegang "anon key") tidak bisa menyentuhnya. Di Table Editor Supabase, ganti pilihan schema ke `dapur` untuk melihatnya. **Jangan pindahkan tabel ini ke `public` dan jangan tambahkan `dapur` ke "Exposed schemas".**
+- **Paket gratis Supabase menjeda proyek yang sepi sekitar seminggu.** Kalau setelah lama tidak dipakai Dapur menampilkan "Catatan belum bisa dibuka", buka dashboard Supabase → **Resume project**. Catatannya tidak hilang.
+- Tombol **Unduh cadangan** di bagian bawah Dapur mengunduh seluruh catatan sebagai satu file. Unduh sesekali dan simpan di Google Drive.
+- Tanggal "hari ini" mengikuti zona waktu toko (`timeZone` di `src/config/site.ts`, bawaan WIB).
+
+### Mencoba di komputer sendiri
+
+`npm run dev`, lalu buka `http://localhost:3000/dapur` (kalau port 3000 terpakai, lihat alamat di terminal). Di sini Dapur terbuka tanpa kunci dan catatannya disimpan di folder `catatan-toko/`: **terpisah** dari Dapur yang online, cocok untuk coba-coba. Folder itu tidak ikut ke GitHub.
+
+Aturan aksesnya ada di `src/lib/dapur/access.ts`, penyimpanannya di `src/lib/dapur/store.ts`.
+
+---
+
 ## Online-kan ke Vercel (gratis)
 
 1. Simpan proyek ke GitHub:
@@ -167,16 +225,21 @@ Setelah online, cek hasilnya di:
 ```
 src/
 ├─ app/                 halaman, metadata SEO, ikon, sitemap, robots
+│  └─ dapur/            halaman Dapur (ringkasan, pre-order, pembukuan, bahan)
 ├─ components/
 │  ├─ sections/         Navbar, Hero, Tentang, Menu, Lokasi, Footer
 │  ├─ ui/               tombol, kartu menu, dialog detail, filter, menu mobile, dll.
+│  ├─ dapur/            form & daftar Dapur
 │  ├─ three/            puding 3D (bentuk, material, fisika goyangan) + ilustrasi cadangan
 │  └─ providers/        smooth scroll (Lenis)
 ├─ config/site.ts       ← info bisnis
 ├─ config/theme.ts      ← palet warna (biru / karamel)
 ├─ data/menu.ts         ← daftar menu
 └─ lib/                 fungsi bantu (format Rupiah, link WhatsApp, scroll, dll.)
+   └─ dapur/            data Dapur: penyimpanan file, perhitungan, aturan akses
 public/images/menu/     ← foto menu
+catatan-toko/           ← catatan Dapur saat coba-coba di komputer (tidak ikut ke GitHub)
+vercel.json             ← server Vercel di Singapura, dekat database & pembeli
 ```
 
 ---
@@ -194,3 +257,4 @@ Cari `TODO` di proyek (di VS Code: `Ctrl + Shift + F`) lalu lengkapi:
 - [ ] Cerita brand & keunggulan (`src/components/sections/About.tsx`)
 - [ ] Logo/ikon asli jika ada (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`)
 - [ ] Domain (`NEXT_PUBLIC_SITE_URL` di Vercel)
+- [ ] Dapur: database Supabase + `DAPUR_KEY` di Vercel (lihat bagian Dapur)

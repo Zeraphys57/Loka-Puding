@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Lenis from "lenis";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -13,10 +14,12 @@ import { scrollToTarget, setLenis } from "@/lib/scroll";
  */
 export function SmoothScroll() {
   const reducedMotion = useReducedMotion();
+  // Dapur (catatan toko) berisi form & daftar panjang: di sana pakai scroll bawaan browser
+  const isDapur = usePathname().startsWith("/dapur");
 
   useEffect(() => {
     // Gerakan minimal → scroll bawaan browser saja
-    if (reducedMotion) return;
+    if (reducedMotion || isDapur) return;
 
     const lenis = new Lenis({ autoRaf: false, lerp: 0.1, smoothWheel: true });
     const onTick = (time: number) => lenis.raf(time * 1000);
@@ -31,7 +34,7 @@ export function SmoothScroll() {
       lenis.destroy();
       setLenis(null);
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, isDapur]);
 
   // Semua link "#..." : scroll halus dengan offset navbar, lalu pindahkan fokus
   // ke section tujuan supaya pengguna keyboard melanjutkan dari sana.

@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# catatan toko dari /dapur (data pelanggan & keuangan): jangan pernah di-upload
+/catatan-toko/
+
 # vercel
 .vercel
 

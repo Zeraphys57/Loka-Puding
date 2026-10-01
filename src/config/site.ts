@@ -75,6 +75,13 @@ export const siteConfig = {
     link: "https://maps.google.com/?q=Jakarta",
   },
 
+  /**
+   * Zona waktu toko. Dipakai Dapur (/dapur) untuk menentukan tanggal "hari ini":
+   * server hosting memakai jam UTC, jadi tanpa ini pesanan pagi hari tercatat di tanggal kemarin.
+   * WIB: "Asia/Jakarta" · WITA: "Asia/Makassar" · WIT: "Asia/Jayapura"
+   */
+  timeZone: "Asia/Jakarta",
+
   // TODO: jam buka asli
   openingHours: [
     {
