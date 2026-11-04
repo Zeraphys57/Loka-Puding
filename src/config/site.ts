@@ -52,29 +52,24 @@ export const siteConfig = {
     },
   },
 
-  // TODO: lengkapi nomor rumah / patokan di `street` (mis. "Jl. Purwomartani No. 12")
   address: {
-    street: "Jl. Purwomartani",
-    locality: "Kalasan",
+    street: "Perum, RT.07/RW.02, Kadisoko",
+    locality: "Purwomartani, Kalasan",
     city: "Sleman",
     region: "DI Yogyakarta",
     postalCode: "55571",
     country: "ID",
   },
 
-  // Saat ini titik tengah Kalurahan Purwomartani, belum titik tokonya.
-  // TODO: koordinat toko (klik kanan lokasi di Google Maps → salin angka koordinat)
+  // Titik toko dari Plus Code 6CWX+R95 (Kadisoko, Purwomartani)
   geo: {
-    latitude: -7.7615903,
-    longitude: 110.4563842,
+    latitude: -7.752988,
+    longitude: 110.448484,
   },
 
-  // Saat ini peta menunjuk Jalan Purwomartani secara umum, belum pin tokonya.
   maps: {
-    // TODO: Google Maps → cari toko → Bagikan → Sematkan peta → salin URL di dalam src="..."
-    embedUrl: "https://www.google.com/maps?q=Jl.+Purwomartani,+Kalasan,+Sleman,+Yogyakarta&z=15&output=embed",
-    // TODO: Google Maps → cari toko → Bagikan → Salin link
-    link: "https://maps.google.com/?q=Jl.+Purwomartani,+Kalasan,+Sleman,+Yogyakarta",
+    embedUrl: "https://www.google.com/maps?q=-7.752988,110.448484&z=17&output=embed",
+    link: "https://maps.google.com/?q=-7.752988,110.448484",
   },
 
   /**
