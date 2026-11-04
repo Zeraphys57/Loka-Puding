@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { PuddingFallback } from "@/components/three/PuddingFallback";
 import { siteConfig } from "@/config/site";
+import { palette, type Palette } from "@/config/theme";
 import { dripPath } from "@/lib/drip";
 
 // Gambar pratinjau saat link dibagikan (WhatsApp, Instagram, X, dll.). Dibuat sekali saat build.
@@ -16,16 +17,33 @@ const frauncesBlack = readFile(join(fontDir, "Fraunces-Soft900.woff"));
 const frauncesItalic = readFile(join(fontDir, "Fraunces-Italic-Soft500.woff"));
 const jakartaBold = readFile(join(fontDir, "PlusJakartaSans-Bold.woff"));
 
-const C = {
-  milk: "#fbf6ee",
-  milk50: "#fffcf7",
-  caramel100: "#fbe6c8",
-  caramel300: "#e9ae5e",
-  caramel500: "#bd6e23",
-  caramel600: "#a0561a",
-  caramel700: "#80420f",
-  espresso: "#2b1a10",
+// Satori tidak bisa membaca CSS variable, jadi nilainya disalin dari globals.css (@theme & [data-palette="biru"])
+const PALETTES: Record<Palette, Record<"milk" | "milk50" | "caramel100" | "caramel500" | "caramel600" | "caramel700" | "espresso" | "shadow", string>> = {
+  karamel: {
+    milk: "#fbf6ee",
+    milk50: "#fffcf7",
+    caramel100: "#fbe6c8",
+    caramel500: "#bd6e23",
+    caramel600: "#a0561a",
+    caramel700: "#80420f",
+    espresso: "#2b1a10",
+    shadow: "rgba(128,66,15,0.28)",
+  },
+  biru: {
+    milk: "#f3f7fc",
+    milk50: "#fbfdff",
+    caramel100: "#dde9f8",
+    caramel500: "#5580bd",
+    caramel600: "#3c66a3",
+    caramel700: "#2d4f87",
+    espresso: "#1b2a45",
+    shadow: "rgba(45,79,135,0.28)",
+  },
 };
+const C = PALETTES[palette];
+
+// Lelehan di tepi atas = karamel produk (pudding-caramel-600), sama seperti navbar: tidak ikut palet
+const DRIP_COLOR = "#97541f";
 
 const DRIP = dripPath({ width: 600, height: 70, band: 26, seed: 29, count: 7 });
 
@@ -45,13 +63,16 @@ export default async function OpenGraphImage() {
       >
         {/* Pita karamel yang meleleh di tepi atas */}
         <svg width="1200" height="70" viewBox="0 0 1200 70" style={{ position: "absolute", top: 0, left: 0 }}>
-          <path d={DRIP} fill={C.caramel600} />
-          <path d={DRIP} fill={C.caramel600} transform="translate(600 0)" />
+          <path d={DRIP} fill={DRIP_COLOR} />
+          <path d={DRIP} fill={DRIP_COLOR} transform="translate(600 0)" />
         </svg>
 
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "90px 0 60px 72px", width: 760 }}>
           <div style={{ display: "flex", alignItems: "center", fontSize: 22, letterSpacing: 5, color: C.caramel700 }}>
-            <div style={{ width: 48, height: 2, background: C.caramel500, marginRight: 16 }} />
+            {/* Bintang kecil, sama dengan penanda label di website */}
+            <svg width="20" height="20" viewBox="0 0 12 12" style={{ marginRight: 14 }}>
+              <path d="M6 0l1.6 4.4L12 6 7.6 7.6 6 12 4.4 7.6 0 6l4.4-1.6z" fill={C.caramel500} />
+            </svg>
             PUDING KARAMEL HOMEMADE
           </div>
           <div style={{ display: "flex", flexDirection: "column", marginTop: 26, lineHeight: 0.92 }}>
@@ -94,7 +115,7 @@ export default async function OpenGraphImage() {
               height: 400,
               borderRadius: 999,
               background: C.milk50,
-              boxShadow: "0 30px 70px rgba(128,66,15,0.28)",
+              boxShadow: `0 30px 70px ${C.shadow}`,
             }}
           >
             <PuddingFallback size={372} />
