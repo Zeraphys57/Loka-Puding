@@ -40,10 +40,10 @@ export const siteConfig = {
   ],
 
   whatsapp: {
-    // TODO: nomor WhatsApp asli, format internasional tanpa "+" dan tanpa 0 di depan (0812… → 62812…)
-    number: "6281234567890",
-    // TODO: nomor yang ditampilkan di website
-    display: "+62 812-3456-7890",
+    // Format internasional tanpa "+" dan tanpa 0 di depan (0895… → 62895…)
+    number: "62895327578708",
+    /** Nomor yang ditampilkan di website */
+    display: "+62 895-3275-78708",
     messages: {
       /** Pesan untuk tombol "Pesan Sekarang" / "Pesan via WhatsApp" */
       general: "Halo Loka Pudding! 👋 Saya mau pesan pudding. Menu apa saja yang ready hari ini?",
