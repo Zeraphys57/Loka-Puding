@@ -28,7 +28,7 @@
   --color-espresso-900: #1f140d;
 
   /* Warna produk asli (puding, piring, taplak di foto). TIDAK ikut berganti palet:
-     dipakai untuk logo, navbar karamel, dan penampang puding di section Kisah Kami. */
+     dipakai untuk logo, navbar karamel, dan menu HP. */
   --color-pudding-caramel-200: #ffd9a8; /* kilau: teks besar di atas karamel (≥3.2:1) */
   --color-pudding-caramel-300: #e2a765;
   --color-pudding-caramel-500: #b0692c;
@@ -38,12 +38,8 @@
   --color-pudding-caramel-900: #3f1e08;
   --color-pudding-cream: #fff3e0;
   --color-pudding-milk: #f7efdf;
-  --color-pudding-milk-deep: #ecdcbf;
-  --color-pudding-ink: #2b1a10;
-  --color-pudding-ink-muted: #6b5443; /* di atas lapisan susu 5.6:1 */
   --color-saucer: #e6ddce;
   --color-saucer-deep: #cdbfa9;
-  --color-saucer-speck: #8a7560;
 
   /* Nama semantik (dipakai di seluruh komponen) */
   --color-ink: var(--color-espresso);
@@ -98,14 +94,12 @@
   --animate-float: float 7s ease-in-out infinite;
   /* Tetes karamel yang lepas dari navbar: menggembung, putus, lalu jatuh (dipercepat gravitasi) */
   --animate-drip-fall: drip-fall 1.5s cubic-bezier(0.55, 0, 0.85, 0.45) both;
-  /* Gelembung udara di dalam puding naik pelan */
-  --animate-bubble: bubble 9s ease-in-out infinite;
   --animate-spin-slow: spin 18s linear infinite;
   --animate-wiggle: wiggle 2.6s ease-in-out infinite;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Palet alternatif "biru pastel" (tidak aktif; palet utama karamel)  */
+/*  Palet "biru pastel" (aktif atau tidaknya diatur di theme.ts)       */
 /*  Diambil dari taplak gingham biru di foto produk. Aktif lewat       */
 /*  <html data-palette="biru">; pindah palet di src/config/theme.ts.   */
 /*  Nama token sengaja tetap (caramel-*, milk, espresso) supaya bisa   */
@@ -246,16 +240,6 @@
   }
 }
 
-@keyframes bubble {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(6px, -22px);
-  }
-}
-
 @keyframes float {
   0%,
   100% {
@@ -379,16 +363,6 @@
     linear-gradient(90deg, var(--gingham-ink, var(--gingham-tone)) 50%, transparent 50%),
     linear-gradient(var(--gingham-ink, var(--gingham-tone)) 50%, transparent 50%);
   background-size: var(--gingham-size, 26px) var(--gingham-size, 26px);
-}
-
-/* Bintik-bintik keramik stoneware (piring di foto produk) */
-@utility bg-speckle {
-  background-color: var(--color-saucer);
-  background-image:
-    radial-gradient(circle at 20% 30%, var(--color-saucer-speck) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 70% 65%, var(--color-saucer-speck) 0 1.3px, transparent 2px),
-    radial-gradient(circle at 45% 85%, rgb(138 117 96 / 0.55) 0 0.8px, transparent 1.4px);
-  background-size: 23px 19px, 41px 31px, 17px 13px;
 }
 
 /* Butiran halus (tekstur kertas/foto) di atas warna latar */
