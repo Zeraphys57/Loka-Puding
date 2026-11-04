@@ -14,7 +14,8 @@ export default function HomePage() {
     <>
       <JsonLd data={buildBusinessJsonLd(getSiteUrl())} />
       <Navbar />
-      <main id="konten" tabIndex={-1}>
+      {/* z-10: konten di atas footer yang "tersingkap" (footer z-0, bukan negatif agar tetap bisa diklik) */}
+      <main id="konten" tabIndex={-1} className="relative z-10">
         <Hero />
         <About />
         <MenuCatalog />
