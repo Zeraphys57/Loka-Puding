@@ -1,16 +1,13 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Tone = "light" | "dark" | "caramel" | "milk";
+type Tone = "light" | "dark";
 
 type EyebrowProps = {
   children: ReactNode;
   /** Bintang di kedua sisi (untuk judul rata tengah) */
   centered?: boolean;
-  /**
-   * light/dark: latar terang/gelap (warna palet aktif).
-   * caramel/milk: di atas lapisan puding (warna produk, tidak ikut palet).
-   */
+  /** light/dark: latar terang/gelap (warna palet aktif). */
   tone?: Tone;
   className?: string;
 };
@@ -18,15 +15,11 @@ type EyebrowProps = {
 const TEXT: Record<Tone, string> = {
   light: "text-caramel-700",
   dark: "text-caramel-300",
-  caramel: "text-pudding-cream",
-  milk: "text-pudding-caramel-700",
 };
 
 const MARK: Record<Tone, string> = {
   light: "text-caramel-500",
   dark: "text-caramel-300",
-  caramel: "text-pudding-caramel-200",
-  milk: "text-pudding-caramel-500",
 };
 
 /**
