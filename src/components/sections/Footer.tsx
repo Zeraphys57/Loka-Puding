@@ -21,7 +21,7 @@ export function Footer() {
   ];
 
   return (
-    <RevealFooter className="on-dark sticky -z-10 overflow-hidden bg-espresso-900 text-milk-50">
+    <RevealFooter className="on-dark sticky z-0 overflow-hidden bg-espresso-900 text-milk-50">
       <div aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-60" />
       <div
         aria-hidden="true"
