@@ -76,16 +76,14 @@ Hero menjual rasa lewat gerakan. Pudingnya model tiga dimensi yang bergoyang saa
 ## Slide 5 · Tentang: "Lapis demi lapis"
 
 **Isi slide**
-- Pengunjung menggulir menembus satu gelas puding
-- Urutan lapisan: karamel, susu, dasar gelas, piring, taplak meja
-- Empat cerita: Bahan premium, Dibuat tiap pagi, Tekstur sempurna, Resep autentik
-- Penanda di sisi layar: "kamu di lapisan karamel"
-- "Goyang-meter": foto yang ikut bergoyang
+- Dibuat seperti buku resep keluarga yang terbuka di atas taplak kotak-kotak
+- Empat halaman: Bahan premium, Dibuat tiap pagi, Tekstur sempurna, Resep autentik
+- Tiap halaman: kertas bergaris, foto polaroid berselotip, catatan tulisan tangan
 
 **Narasi**
-Bagian Tentang tidak ditulis sebagai paragraf panjang. Halamannya dibuat seperti penampang gelas puding, dan tiap lapisan membawa satu alasan kenapa puding ini enak: bahannya, kesegarannya, teksturnya, dan resep keluarganya. Bentuk ceritanya sama dengan bentuk produknya.
+Bagian Tentang tidak ditulis sebagai paragraf panjang. Halamannya dibuat seperti buku resep keluarga, karena memang dari situlah Loka berawal. Tiap halaman membawa satu alasan kenapa puding ini enak: bahannya, kesegarannya, teksturnya, dan resepnya.
 
-**Gambar**: lapisan karamel (judul "Lapis demi lapis") dan kartu resep di atas taplak.
+**Gambar**: judul "Lapis demi lapis" dan dua halaman buku resep di atas taplak.
 
 ---
 
@@ -93,15 +91,14 @@ Bagian Tentang tidak ditulis sebagai paragraf panjang. Halamannya dibuat seperti
 
 **Isi slide**
 - Tiga menu: Puding Karamel Rp 10.000, Topping Regal Rp 13.000, Topping Popcorn Karamel Rp 15.000
-- Foto besar, stiker harga, dan catatan tangan di tiap menu
-- "Lihat detail": jendela berisi foto, deskripsi lengkap, dan harga
-- Di dalam detail, "Pesan Menu Ini": WhatsApp terbuka dengan nama menu dan harga
-- "Menu lainnya menyusul" untuk varian baru
+- Etalase: tiga puding berdampingan dengan harga, supaya mudah dibandingkan
+- Paket bundling dengan foto isi paket dan label "hemat" otomatis
+- Sentuh kartu mana saja: jendela detail terbuka, lalu "Pesan Menu Ini" membuka WhatsApp dengan nama menu dan harga
 
 **Narasi**
-Tiap menu tampil bergantian kiri dan kanan seperti halaman majalah, dengan satu tombol saja: Lihat detail. Dari jendela detail, tombol Pesan membuka WhatsApp dengan pesan yang sudah terisi, jadi pembeli tidak perlu mengetik ulang. Menu yang habis otomatis ditandai. Menambah menu cukup dari satu berkas data, tanpa mengubah desain.
+Semua menu tampil sekaligus seperti etalase toko, jadi pembeli bisa membandingkan harga tanpa menggulir jauh. Di HP, etalasenya berubah jadi daftar ringkas. Paket bundling punya kotak sendiri yang menunjukkan isi paket dan berapa yang dihemat. Dari jendela detail, tombol Pesan membuka WhatsApp dengan pesan yang sudah terisi, jadi pembeli tidak perlu mengetik ulang. Menambah menu atau paket cukup dari satu berkas data, tanpa mengubah desain.
 
-**Gambar**: satu menu lengkap dengan stiker harga, dan jendela detail menu.
+**Gambar**: etalase tiga puding, kotak paket bundling, dan jendela detail menu.
 
 ---
 

@@ -4,7 +4,6 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { WhatsAppIcon } from "@/components/ui/Icons";
 import { MenuBrowser } from "@/components/ui/MenuBrowser";
 import { siteConfig } from "@/config/site";
-import { upcomingMenus } from "@/data/menu";
 import { dripMaskUrl } from "@/lib/drip";
 import { getMenuCategories, getMenuItems } from "@/lib/menu";
 
@@ -44,7 +43,7 @@ export function MenuCatalog() {
           </p>
         </header>
 
-        <MenuBrowser items={items} categories={categories} upcoming={upcomingMenus} instagram={siteConfig.social.instagram} />
+        <MenuBrowser items={items} categories={categories} instagram={siteConfig.social.instagram} />
       </Container>
 
       <div

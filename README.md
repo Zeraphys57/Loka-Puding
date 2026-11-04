@@ -83,17 +83,26 @@ Saat ini ada 3 menu: **Puding Karamel**, **Puding Karamel Topping Regal**, dan *
 - **Kategori:** ubah daftar `menuCategories` di bagian atas file. Tombol filter kategori baru muncul otomatis begitu ada lebih dari satu kategori yang punya menu.
 - Harga otomatis tampil sebagai `Rp 13.000`, dan tombol **Pesan Menu Ini** otomatis mengirim nama + harga ke WhatsApp.
 
-### Slot "Menu lainnya menyusul"
+### Paket bundling
 
-Di bawah katalog ada bagian **Segera Hadir** berisi kartu dengan gambar kosong (template) + kartu ajakan follow Instagram. Isinya diatur di `upcomingMenus` (masih di `src/data/menu.ts`):
+Paket ditulis seperti menu biasa, ditambah `contents`: daftar `id` menu yang ada di dalamnya.
 
 ```ts
-{ id: "menu-baru-1", name: "Varian Baru", teaser: "Sedang kami racik di dapur. Tunggu kejutannya!" },
+{
+  id: "bundling-1",
+  name: "Bundling 1",
+  category: "bundling",
+  description: "Isi 2 puding: Puding Karamel klasik + Topping Regal.",
+  price: 21000,
+  contents: ["puding-karamel", "puding-karamel-regal"],
+},
 ```
 
-- Sudah punya foto untuk menu yang akan datang? Tambahkan `image: "/images/menu/nama-file.jpg"`.
-- Menunya sudah resmi dijual? **Pindahkan** ke `menuItems` (lengkapi harga, kategori, deskripsi).
-- Tidak ingin menampilkan bagian ini? Kosongkan: `export const upcomingMenus: UpcomingMenu[] = [];`
+- Paket tampil di kotak **"Paket bundling"** di bawah etalase, lengkap dengan foto bulat isinya.
+- Label **"Hemat Rp…"** dihitung otomatis dari selisih harga beli satuan. Label ini hanya muncul kalau paketnya memang lebih murah.
+- Kalau ada `id` yang salah ketik di `contents`, build akan gagal dengan pesan yang menyebut id tersebut.
+
+Di bawah katalog ada satu baris ajakan follow Instagram, "menu baru menyusul". Isinya mengikuti akun Instagram di `site.ts`.
 
 ---
 
@@ -253,7 +262,7 @@ Cari `TODO` di proyek (di VS Code: `Ctrl + Shift + F`) lalu lengkapi:
 - [ ] Jam buka (`site.ts`)
 - [ ] Instagram, TikTok, link GoFood/GrabFood/ShopeeFood (`site.ts`)
 - [ ] Cek harga & deskripsi 3 menu karamel (`menu.ts`)
-- [ ] Atur slot "Menu lainnya menyusul" atau kosongkan jika tidak dipakai (`upcomingMenus` di `menu.ts`)
+- [ ] Isi & harga asli paket Bundling 1 dan 2 (`menu.ts`; sekarang masih contoh)
 - [ ] Cerita brand & keunggulan (`src/components/sections/About.tsx`)
 - [ ] Logo/ikon asli jika ada (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`)
 - [ ] Domain (`NEXT_PUBLIC_SITE_URL` di Vercel)

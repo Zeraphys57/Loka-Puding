@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, type KeyboardEvent } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { BundlePhotos } from "@/components/ui/BundlePhotos";
 import { EmptyImage } from "@/components/ui/EmptyImage";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { CloseIcon, WhatsAppIcon } from "@/components/ui/Icons";
@@ -141,6 +142,10 @@ export function MenuDialog({ item, onClosed }: MenuDialogProps) {
                     sizes="(min-width: 640px) 360px, 100vw"
                     className={item.available ? "object-cover" : "object-cover opacity-85 grayscale-[0.6]"}
                   />
+                ) : item.contents.length > 0 ? (
+                  <div className="bg-gingham absolute inset-0 grid place-items-center [--gingham-size:28px]">
+                    <BundlePhotos parts={item.contents} className="[--bundle-photo:min(24vw,8rem)]" />
+                  </div>
                 ) : (
                   <EmptyImage name={item.name} />
                 )}
