@@ -6,6 +6,7 @@
  *   Belum punya foto? Hapus/kosongkan `image` → otomatis tampil template "Foto segera hadir".
  * - `badge` opsional: "Best Seller" atau "Baru"
  * - `note` opsional: catatan kecil bergaya tulisan tangan di dekat foto (mis. "ada kriuknya!")
+ * - `topping` opsional: tambahan dibanding menu sebelumnya, tampil di panah "+ …" (mis. "biskuit Regal")
  * - `available: false` menandai menu yang sedang habis
  */
 
@@ -34,6 +35,8 @@ export type MenuItem = {
   badge?: MenuBadge;
   /** Catatan tulisan tangan di dekat foto. Singkat saja (±15 huruf). */
   note?: string;
+  /** Tambahan dibanding menu sebelumnya, untuk panah "+ …" di etalase (mis. "biskuit Regal"). */
+  topping?: string;
   /** Default `true`. Isi `false` kalau menu sedang habis. */
   available?: boolean;
   /** Khusus paket: `id` menu yang ada di dalamnya. Foto isi & label "hemat Rp…" dibuat otomatis dari sini. */
@@ -60,6 +63,7 @@ export const menuItems: MenuItem[] = [
     image: "/images/menu/puding-karamel-regal-v2.jpg",
     imageAlt: "Puding karamel dengan biskuit Regal dan remahannya di atas lapisan karamel",
     note: "ada kriuknya!",
+    topping: "biskuit Regal",
   },
   {
     id: "puding-karamel-popcorn",
@@ -70,6 +74,7 @@ export const menuItems: MenuItem[] = [
     image: "/images/menu/puding-karamel-popcorn-v2.jpg",
     imageAlt: "Puding karamel dengan tumpukan popcorn karamel di atasnya",
     note: "banjir popcorn!",
+    topping: "popcorn karamel",
   },
   // shortcut: isi & harga paket masih contoh (belum diputuskan), ganti sebelum dipromosikan
   {

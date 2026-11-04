@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { BundlePhotos } from "@/components/ui/BundlePhotos";
 import { EmptyImage } from "@/components/ui/EmptyImage";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -51,48 +51,76 @@ export function MenuBrowser({ items, categories, instagram }: MenuBrowserProps) 
         </div>
       ) : null}
 
-      {/* Etalase: semua puding berdampingan supaya mudah dibandingkan. Di HP jadi daftar ringkas. */}
+      {/*
+        "Satu meja, naik level": puding berdiri berjejer di satu taplak, dengan panah "+ topping" di antaranya.
+        Desktop: grid [puding][panah][puding]…; tiap puding memakai subgrid 3 baris (catatan, foto, teks)
+        supaya foto sejajar dan taplak bisa diletakkan di baris foto. HP: tersusun ke bawah, panah menunjuk turun.
+      */}
       {singles.length > 0 ? (
-        <ul className="grid w-full max-w-6xl gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
-          {singles.map((item) => (
-            <li key={item.id} data-reveal>
+        <div
+          className="flex w-full max-w-6xl flex-col gap-2 lg:grid lg:grid-rows-[auto_auto_auto] lg:[--step:5.5rem] xl:[--step:7.5rem]"
+          style={{ gridTemplateColumns: singles.map((_, i) => (i ? "var(--step) minmax(0,1fr)" : "minmax(0,1fr)")).join(" ") }}
+        >
+          <div
+            aria-hidden="true"
+            className="bg-gingham hidden rounded-[2rem] shadow-card [--gingham-size:32px] lg:col-span-full lg:row-start-2 lg:-mx-6 lg:-mb-6 lg:block lg:h-[40%] lg:self-end"
+          />
+          {singles.map((item, index) => (
+            <Fragment key={item.id}>
+              {index > 0 ? <StepArrow topping={item.topping} column={index * 2} /> : null}
               <article
                 aria-labelledby={`menu-${item.id}`}
-                className="group relative flex h-full items-center gap-4 rounded-[2rem] bg-milk-50 p-3 shadow-card ring-1 ring-black/5 transition-transform duration-500 ease-out-soft hover:-translate-y-1 sm:gap-6 lg:flex-col lg:items-stretch lg:gap-0"
+                data-reveal
+                style={{ gridColumn: index * 2 + 1 }}
+                className="group relative z-10 grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-x-5 sm:grid-cols-[9rem_minmax(0,1fr)] lg:row-span-3 lg:row-start-1 lg:grid-cols-1 lg:grid-rows-subgrid lg:text-center"
               >
-                <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-[1.5rem] bg-custard sm:w-40 lg:aspect-[4/5] lg:w-full">
-                  {item.image ? (
-                    <Image
-                      src={item.image}
-                      alt={item.imageAlt}
-                      fill
-                      sizes="(min-width: 1024px) 24rem, 10rem"
-                      className={cn(
-                        "object-cover transition-transform duration-1000 ease-silk group-hover:scale-105",
-                        !item.available && "opacity-80 grayscale-[0.7]",
-                      )}
-                    />
-                  ) : (
-                    <EmptyImage name={item.name} />
-                  )}
-                  <StatusPills item={item} className="absolute top-2 left-2 lg:top-4 lg:left-4" />
+                <div className="col-start-2 row-start-1 self-end lg:col-start-1 lg:pb-3">
+                  {item.note ? (
+                    <HandNote className="text-[1.3rem] sm:text-[1.5rem] lg:-rotate-3 lg:text-[1.7rem]">{item.note}</HandNote>
+                  ) : null}
                 </div>
 
-                <div className="flex min-w-0 flex-1 flex-col lg:px-4 lg:pt-5 lg:pb-3">
-                  {item.note ? <HandNote className="text-[1.3rem] sm:text-[1.5rem]">{item.note}</HandNote> : null}
+                <div className="relative col-start-1 row-span-2 row-start-1 self-center lg:row-span-1 lg:row-start-2 lg:px-5">
+                  {/* Di HP tiap puding punya alas taplak sendiri; di desktop alasnya taplak bersama */}
+                  <div
+                    aria-hidden="true"
+                    className="bg-gingham absolute -inset-x-2 -bottom-2 h-2/5 rounded-xl shadow-card [--gingham-size:16px] lg:hidden"
+                  />
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-t-full rounded-b-[1.25rem] bg-custard shadow-pop ring-4 ring-white lg:rounded-b-[2rem] lg:ring-[6px]">
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.imageAlt}
+                        fill
+                        sizes="(min-width: 1024px) 20rem, 9rem"
+                        className={cn(
+                          "object-cover transition-transform duration-1000 ease-silk group-hover:scale-105",
+                          !item.available && "opacity-80 grayscale-[0.7]",
+                        )}
+                      />
+                    ) : (
+                      <EmptyImage name={item.name} />
+                    )}
+                    <StatusPills item={item} className="absolute bottom-3 left-1/2 -translate-x-1/2 items-center" />
+                  </div>
+                </div>
+
+                <div className="col-start-2 row-start-2 self-start pt-1 lg:col-start-1 lg:row-start-3 lg:flex lg:flex-col lg:items-center lg:self-stretch lg:px-3 lg:pt-12">
                   <h3
                     id={`menu-${item.id}`}
-                    className="mt-1 font-display text-xl leading-[1.1] font-bold tracking-[-0.01em] text-espresso sm:text-2xl"
+                    className="font-display text-xl leading-[1.1] font-bold tracking-[-0.01em] text-espresso sm:text-2xl xl:text-[1.75rem]"
                   >
                     {item.name}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-muted sm:text-base">{item.description}</p>
-                  <PriceButton item={item} onOpen={openItem} className="mt-4 lg:mt-auto lg:pt-6" />
+                  <p className="mt-2 text-sm leading-relaxed text-ink-muted sm:text-base lg:mx-auto lg:max-w-[18rem]">
+                    {item.description}
+                  </p>
+                  <PriceTag item={item} onOpen={openItem} />
                 </div>
               </article>
-            </li>
+            </Fragment>
           ))}
-        </ul>
+        </div>
       ) : null}
 
       {/* Paket hemat: satu lembar berisi baris-baris paket, di atas "serbet" kotak-kotak */}
@@ -189,11 +217,72 @@ function PriceButton({ item, onOpen, className }: { item: MenuItemView; onOpen: 
   );
 }
 
+/** Harga di label gantung (berlubang tali) + panah. Bidang kliknya menutupi seluruh puding, seperti PriceButton. */
+function PriceTag({ item, onOpen }: { item: MenuItemView; onOpen: OpenItem }) {
+  return (
+    <button
+      type="button"
+      onClick={(event) => onOpen(item, event.currentTarget)}
+      className="group/price mt-4 inline-flex items-center gap-3 after:absolute after:inset-0 lg:mt-auto lg:pt-6"
+    >
+      <span className="sr-only">Lihat detail {item.name},</span>
+      {/* drop-shadow di pembungkus, karena clip-path memotong box-shadow */}
+      <span className="-rotate-3 drop-shadow-[0_6px_8px_rgb(0_0_0/0.18)] transition-transform duration-500 ease-jelly group-hover/price:rotate-3">
+        <span
+          className={cn(
+            "relative block py-1.5 pr-4 pl-7 font-display text-lg font-black tracking-tight text-white [clip-path:polygon(0.9rem_0,100%_0,100%_100%,0.9rem_100%,0_50%)] sm:text-xl",
+            item.available ? "bg-caramel-600" : "bg-ink-muted line-through",
+          )}
+        >
+          <span aria-hidden="true" className="absolute top-1/2 left-[0.7rem] size-2 -translate-y-1/2 rounded-full bg-milk" />
+          {item.priceLabel}
+        </span>
+      </span>
+      <span
+        aria-hidden="true"
+        className="grid size-9 shrink-0 place-items-center rounded-full bg-milk-50 text-caramel-700 shadow-sticker ring-1 ring-line transition-transform duration-500 ease-jelly group-hover/price:translate-x-1"
+      >
+        <ArrowRightIcon className="size-4" />
+      </span>
+    </button>
+  );
+}
+
+/** Panah coretan tangan "+ topping" di antara dua puding. Desktop: ke kanan; HP: ke bawah. */
+function StepArrow({ topping, column }: { topping?: string; column: number }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{ gridColumn: column }}
+      className="flex items-center gap-1 pl-9 sm:pl-[3.25rem] lg:row-start-2 lg:flex-col-reverse lg:gap-2 lg:self-center lg:pb-[30%] lg:pl-0"
+    >
+      <svg
+        viewBox="0 0 80 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        focusable="false"
+        className="h-6 w-10 shrink-0 rotate-90 text-caramel-500 lg:h-7 lg:w-20 lg:rotate-0"
+      >
+        <path d="M4 14c10-8 20 6 32-1s22-6 36 0" />
+        <path d="M63 6l9 7-10 6" />
+      </svg>
+      {topping ? (
+        <span className="font-hand text-[1.35rem] leading-none text-caramel-700 lg:-rotate-6 lg:text-center lg:text-[1.5rem]">
+          + {topping}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 /** Label "Best Seller"/"Baru" dan "Habis" (jika ada). */
 function StatusPills({ item, className }: { item: MenuItemView; className?: string }) {
   if (!item.badge && item.available) return null;
   return (
-    <span className={cn("flex flex-col items-start gap-1.5", className)}>
+    <span className={cn("flex flex-col gap-1.5", className)}>
       {item.badge ? (
         <span className="-rotate-3 rounded-full bg-caramel-300 px-3 py-1 text-[0.7rem] font-bold tracking-[0.12em] text-espresso uppercase shadow-sticker">
           {item.badge}
