@@ -13,7 +13,12 @@ import { whatsappOrderLink } from "@/lib/whatsapp";
  * bergulir ke atas. Footer yang lebih tinggi dari layar tetap terbaca utuh (lihat RevealFooter).
  */
 export function Footer() {
-  const { social, address, openingHours } = siteConfig;
+  const { social, address, openingHours, whatsapp } = siteConfig;
+  const contacts = [
+    { href: whatsappOrderLink(), label: whatsapp.display, Icon: WhatsAppIcon },
+    { href: social.instagram.url, label: social.instagram.handle, Icon: InstagramIcon },
+    { href: social.tiktok.url, label: social.tiktok.handle, Icon: TikTokIcon },
+  ];
 
   return (
     <RevealFooter className="on-dark sticky -z-10 overflow-hidden bg-espresso-900 text-milk-50">
@@ -47,7 +52,7 @@ export function Footer() {
         </div>
 
         {/* Info */}
-        <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.7fr_1.3fr_1.2fr]">
           <div className="flex flex-col gap-4">
             <a href="#home" className="group/logo w-fit rounded-full" aria-label="Loka Pudding, kembali ke atas">
               <Logo tone="light" id="mark-footer" />
@@ -78,41 +83,33 @@ export function Footer() {
             <ul className="mt-3 flex flex-col gap-1 text-sm text-milk-50/70">
               {openingHours.map((slot) => (
                 <li key={slot.label}>
-                  {slot.label}: {formatTime(slot.opens)}–{formatTime(slot.closes)}
+                  {slot.label}:{" "}
+                  <span className="whitespace-nowrap">
+                    {formatTime(slot.opens)}–{formatTime(slot.closes)}
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h3 className="mb-4 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">Ikuti kami</h3>
+            <h3 className="mb-4 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">Hubungi kami</h3>
             <ul className="flex flex-col gap-3">
-              <li>
-                <a
-                  href={social.instagram.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-3 text-milk-50/80 transition-colors hover:text-caramel-300"
-                >
-                  <span className="grid size-11 place-items-center rounded-full ring-1 ring-milk-50/15 transition-colors group-hover:bg-caramel-600 group-hover:text-white group-hover:ring-caramel-600">
-                    <InstagramIcon className="size-5" />
-                  </span>
-                  {social.instagram.handle}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={social.tiktok.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-3 text-milk-50/80 transition-colors hover:text-caramel-300"
-                >
-                  <span className="grid size-11 place-items-center rounded-full ring-1 ring-milk-50/15 transition-colors group-hover:bg-caramel-600 group-hover:text-white group-hover:ring-caramel-600">
-                    <TikTokIcon className="size-5" />
-                  </span>
-                  {social.tiktok.handle}
-                </a>
-              </li>
+              {contacts.map(({ href, label, Icon }) => (
+                <li key={href}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-3 whitespace-nowrap text-milk-50/80 transition-colors hover:text-caramel-300"
+                  >
+                    <span className="grid size-11 shrink-0 place-items-center rounded-full ring-1 ring-milk-50/15 transition-colors group-hover:bg-caramel-600 group-hover:text-white group-hover:ring-caramel-600">
+                      <Icon className="size-5" />
+                    </span>
+                    {label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -123,7 +120,8 @@ export function Footer() {
           className="mb-8 text-center font-display text-[clamp(3rem,13.5vw,14rem)] leading-[0.95] font-black tracking-[-0.05em] whitespace-nowrap select-none"
         >
           <span className="bg-gradient-to-b from-caramel-500 to-caramel-800 bg-clip-text text-transparent">Loka </span>
-          <span className="font-wonky bg-gradient-to-b from-caramel-300 to-caramel-700 bg-clip-text font-medium text-transparent italic">
+          {/* pr: ekor huruf miring keluar dari kotaknya; tanpa ruang ini gradasinya terpotong */}
+          <span className="font-wonky bg-gradient-to-b from-caramel-300 to-caramel-700 bg-clip-text pr-[0.12em] font-medium text-transparent italic">
             Pudding
           </span>
         </p>
