@@ -11,6 +11,7 @@
 
 export const menuCategories = [
   { id: "puding-karamel", label: "Puding Karamel" },
+  { id: "bundling", label: "Paket Bundling" },
   // Tambah kategori baru di sini saat menu bertambah, mis. { id: "puding-susu", label: "Puding Susu" }.
   // Tombol filter kategori baru muncul otomatis jika ada lebih dari satu kategori yang punya menu.
 ] as const;
@@ -35,6 +36,8 @@ export type MenuItem = {
   note?: string;
   /** Default `true`. Isi `false` kalau menu sedang habis. */
   available?: boolean;
+  /** Khusus paket: `id` menu yang ada di dalamnya. Foto isi & label "hemat Rp…" dibuat otomatis dari sini. */
+  contents?: string[];
 };
 
 export const menuItems: MenuItem[] = [
@@ -68,32 +71,21 @@ export const menuItems: MenuItem[] = [
     imageAlt: "Puding karamel dengan tumpukan popcorn karamel di atasnya",
     note: "banjir popcorn!",
   },
-];
-
-/**
- * "Menu lainnya menyusul": slot template untuk menu yang akan datang.
- * Tampil di bawah katalog sebagai kartu "Segera Hadir" dengan gambar kosong.
- * - Sudah punya foto (mis. dari Gemini)? Isi `image`.
- * - Menu sudah siap dijual? Pindahkan ke `menuItems` di atas (lengkapi harga & kategori).
- * - Tidak ingin menampilkan bagian ini? Kosongkan array-nya: `[]`.
- */
-export type UpcomingMenu = {
-  id: string;
-  /** Nama sementara, mis. "Varian Baru" atau nama menu yang sudah pasti */
-  name: string;
-  teaser: string;
-  image?: string;
-};
-
-export const upcomingMenus: UpcomingMenu[] = [
+  // shortcut: isi & harga paket masih contoh (belum diputuskan), ganti sebelum dipromosikan
   {
-    id: "menu-baru-1",
-    name: "Varian Baru",
-    teaser: "Sedang kami racik di dapur. Tunggu kejutannya!",
+    id: "bundling-1",
+    name: "Bundling 1",
+    category: "bundling",
+    description: "Isi 2 puding: Puding Karamel klasik + Topping Regal.",
+    price: 21000,
+    contents: ["puding-karamel", "puding-karamel-regal"],
   },
   {
-    id: "menu-baru-2",
-    name: "Varian Baru",
-    teaser: "Rasa baru yang nggak kalah bikin nagih.",
+    id: "bundling-2",
+    name: "Bundling 2",
+    category: "bundling",
+    description: "Isi 3 puding: Puding Karamel klasik + Topping Regal + Topping Popcorn Karamel.",
+    price: 35000,
+    contents: ["puding-karamel", "puding-karamel-regal", "puding-karamel-popcorn"],
   },
 ];
