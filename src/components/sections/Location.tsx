@@ -2,7 +2,6 @@
 
 import { useRef } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { HandNote } from "@/components/ui/HandNote";
 import { ArrowUpRightIcon, ClockIcon, MapPinIcon } from "@/components/ui/Icons";
 import { siteConfig } from "@/config/site";
 import { formatTime } from "@/lib/format";
@@ -131,10 +130,6 @@ export function Location() {
           className="relative z-10 mt-6 lg:pointer-events-none lg:absolute lg:inset-0 lg:mt-0 lg:flex lg:items-center lg:justify-center lg:p-8"
         >
           <div className="relative flex flex-col gap-8 rounded-[2.25rem] bg-espresso-800/95 p-6 shadow-pop ring-1 ring-milk-50/10 sm:p-10 lg:pointer-events-auto lg:w-full lg:max-w-4xl lg:flex-row lg:gap-12 lg:bg-espresso-900/80 lg:p-10 lg:backdrop-blur-xl xl:p-12">
-            <HandNote arrow="down-left" arrowSide="start" className="absolute -top-9 right-6 rotate-3 text-caramel-300 sm:right-10">
-              mampir yuk!
-            </HandNote>
-
             <div className="flex flex-1 flex-col gap-7">
               <div>
                 <h3 className="mb-3 flex items-center gap-2.5 font-sans text-xs font-bold tracking-[0.22em] text-caramel-300 uppercase">
