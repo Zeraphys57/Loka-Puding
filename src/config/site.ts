@@ -53,7 +53,7 @@ export const siteConfig = {
   },
 
   address: {
-    street: "Perum, RT.07/RW.02, Kadisoko",
+    street: "Stand Depan Alfamart",
     locality: "Purwomartani, Kalasan",
     city: "Sleman",
     region: "DI Yogyakarta",
