@@ -60,8 +60,6 @@ const SCRIM: Record<Tone, string> = {
   caramel: "bg-pudding-caramel-700/60",
 };
 
-const LOGO_TONE = { light: "default", dark: "light", caramel: "cream" } as const;
-
 export function Navbar() {
   const [activeId, setActiveId] = useState("home");
   const [hoverId, setHoverId] = useState<string | null>(null);
@@ -259,7 +257,7 @@ export function Navbar() {
           aria-label="Loka Pudding, kembali ke atas"
           className="group/logo pointer-events-auto absolute top-[2.125rem] left-4 rounded-full sm:left-6 xl:left-10"
         >
-          <Logo id="mark-nav" tone={LOGO_TONE[shownTone]} />
+          <Logo className="h-12" />
         </a>
 
         <nav aria-label="Navigasi utama" className="hidden lg:block">

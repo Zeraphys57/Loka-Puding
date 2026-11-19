@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 // Siluet puding (dasar lebar, puncak membulat) & lapisan karamel yang menetes, dalam kotak 48×48
@@ -92,36 +93,19 @@ export function PuddingMark({ className, id = "mark", topping }: PuddingMarkProp
   );
 }
 
-type LogoTone = "default" | "light" | "cream";
-
-// [kata "Loka", kata "Pudding"] per latar
-const LOGO_TEXT: Record<LogoTone, [string, string]> = {
-  /** Latar terang */
-  default: ["text-espresso", "text-caramel-600"],
-  /** Latar gelap (navy/espresso) */
-  light: ["text-milk-50", "text-caramel-300"],
-  /** Di atas lapisan karamel (warna produk) */
-  cream: ["text-pudding-cream", "text-pudding-caramel-200"],
-};
-
 /**
- * Logo teks "Loka Pudding". Letakkan di dalam elemen ber-class `group/logo`
- * agar ikonnya bergoyang saat hover. `tone="light"` untuk latar gelap, `"cream"` di atas karamel.
+ * Logo resmi Loka Pudding (oval biru, tulisan putih, bintang biru muda), dari file gambar milik pemilik.
+ * Warnanya tetap sama di latar terang maupun gelap. Selalu dipakai di dalam tautan yang punya aria-label,
+ * jadi gambarnya dekoratif (alt kosong). Tinggi diatur pemakai lewat `className` (mis. "h-12"); di dalam `group/logo` logonya bergoyang saat hover.
  */
-export function Logo({ className, tone = "default", id }: { className?: string; tone?: LogoTone; id?: string }) {
-  const [loka, pudding] = LOGO_TEXT[tone];
+export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <PuddingMark id={id} className="size-9 shrink-0 origin-bottom group-hover/logo:animate-jiggle-tap" />
-      <span
-        className={cn(
-          "font-display text-[1.4rem] leading-none font-bold tracking-tight whitespace-nowrap transition-colors duration-500",
-          loka,
-        )}
-      >
-        Loka{" "}
-        <span className={cn("font-wonky font-semibold italic transition-colors duration-500", pudding)}>Pudding</span>
-      </span>
-    </span>
+    <Image
+      src="/images/logo-loka-pudding.png"
+      alt=""
+      width={363}
+      height={215}
+      className={cn("w-auto origin-bottom group-hover/logo:animate-jiggle-tap", className)}
+    />
   );
 }

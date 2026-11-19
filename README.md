@@ -131,7 +131,7 @@ Agar foto menu baru **senada** dengan 3 foto yang sudah ada (gelas kaca, piring 
 
 | File | Kegunaan |
 |---|---|
-| `src/app/icon.svg`, `src/app/favicon.ico` | Ikon di tab browser |
+| `src/app/icon.png`, `src/app/favicon.ico` | Ikon di tab browser (dari logo `public/images/logo-loka-pudding.png`) |
 | `src/app/apple-icon.png` (180×180) | Ikon saat disimpan ke layar utama iPhone |
 | `src/app/opengraph-image.tsx` | Gambar pratinjau saat link dibagikan di WhatsApp/Instagram. Dibuat otomatis dari nama & slogan di `site.ts` |
 
@@ -264,6 +264,6 @@ Cari `TODO` di proyek (di VS Code: `Ctrl + Shift + F`) lalu lengkapi:
 - [ ] Cek harga & deskripsi 3 menu karamel (`menu.ts`)
 - [x] Isi & harga paket bundling (`menu.ts`: Sweet Pair, Regal Pair, Popcorn Pair, Sweet Trio)
 - [ ] Cerita brand & keunggulan (`src/components/sections/About.tsx`)
-- [ ] Logo/ikon asli jika ada (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`)
+- [x] Logo/ikon asli (`public/images/logo-loka-pudding.png` → `src/app/icon.png`, `favicon.ico`, `apple-icon.png`)
 - [ ] Domain (`NEXT_PUBLIC_SITE_URL` di Vercel)
 - [ ] Dapur: database Supabase + `DAPUR_KEY` di Vercel (lihat bagian Dapur)

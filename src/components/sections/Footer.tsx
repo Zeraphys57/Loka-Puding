@@ -55,7 +55,7 @@ export function Footer() {
         <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.7fr_1.3fr_1.2fr]">
           <div className="flex flex-col gap-4">
             <a href="#home" className="group/logo w-fit rounded-full" aria-label="Loka Pudding, kembali ke atas">
-              <Logo tone="light" id="mark-footer" />
+              <Logo className="h-16" />
             </a>
             <p className="max-w-xs leading-relaxed text-milk-50/70">{siteConfig.tagline}</p>
           </div>

@@ -24,7 +24,7 @@ export function buildBusinessJsonLd(siteUrl: string) {
     description: siteConfig.description,
     url: siteUrl,
     image: `${siteUrl}/opengraph-image`,
-    logo: `${siteUrl}/icon.svg`,
+    logo: `${siteUrl}/images/logo-loka-pudding.png`,
     telephone: `+${whatsapp.number}`,
     priceRange,
     servesCuisine: ["Dessert", "Puding"],

@@ -35,7 +35,7 @@ export default async function DapurLayout({ children }: LayoutProps<"/dapur">) {
       <header className="sticky top-0 z-30 border-b border-sand/70 bg-milk/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <Link href="/dapur" aria-label="Dapur Loka Pudding, ke ringkasan" className="group/logo flex items-center gap-2.5 rounded-full">
-            <Logo id="mark-dapur" />
+            <Logo className="h-10" />
             <span className="-rotate-3 font-hand text-2xl leading-none text-caramel-600">dapur</span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
