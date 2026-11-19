@@ -56,9 +56,9 @@ export function About() {
           <div className="lg:col-span-7">
             <Eyebrow className="mb-6">Kisah kami</Eyebrow>
             <h2 id="tentang-title" className="leading-[0.86] tracking-[-0.035em] text-espresso">
-              <span className="block text-[clamp(3.1rem,10.5vw,7.25rem)] font-black uppercase">Lapis demi</span>
+              <span className="block text-[clamp(3.1rem,10.5vw,7.25rem)] font-black uppercase">Dari dapur</span>
               <span className="font-wonky block text-[clamp(3.7rem,12.5vw,8.5rem)] font-medium text-caramel-500 italic">
-                lapis.
+                rumahan.
               </span>
             </h2>
           </div>
@@ -182,6 +182,33 @@ export function About() {
                   salam manis, Dapur Loka ♡
                 </p>
               </article>
+
+              {/*
+                Tekstur kertas di atas kedua halaman (multiply, jadi tinta & sketsa ikut "tercetak" di kertas):
+                relief lecek dari noise kasar yang disinari (feDiffuseLighting), lalu dipetakan supaya bagian datar
+                tetap putih (1.0) dan hanya kerutan yang menggelap; ditambah serat halus.
+              */}
+              <svg
+                aria-hidden="true"
+                focusable="false"
+                className="pointer-events-none absolute inset-0 size-full mix-blend-multiply [clip-path:inset(0_round_1.6rem)]"
+              >
+                <filter id="kertas-lecek" x="0" y="0" width="100%" height="100%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.009 0.013" numOctaves={4} seed={11} result="kerut" />
+                  <feDiffuseLighting in="kerut" surfaceScale={3.2} lightingColor="#fff" result="cahaya">
+                    <feDistantLight azimuth={225} elevation={62} />
+                  </feDiffuseLighting>
+                  <feComponentTransfer in="cahaya" result="lecek">
+                    <feFuncR type="linear" slope={1.4} intercept={-0.24} />
+                    <feFuncG type="linear" slope={1.4} intercept={-0.24} />
+                    <feFuncB type="linear" slope={1.4} intercept={-0.24} />
+                  </feComponentTransfer>
+                  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves={2} seed={4} result="serat" />
+                  <feColorMatrix in="serat" type="saturate" values="0" result="seratAbu" />
+                  <feComposite in="lecek" in2="seratAbu" operator="arithmetic" k1={0} k2={1} k3={0.12} k4={-0.06} />
+                </filter>
+                <rect width="100%" height="100%" filter="url(#kertas-lecek)" />
+              </svg>
             </div>
           </div>
         </div>
