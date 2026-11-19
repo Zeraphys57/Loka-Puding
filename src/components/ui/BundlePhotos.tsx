@@ -19,7 +19,7 @@ export function BundlePhotos({ parts, className }: { parts: BundlePart[]; classN
             TILTS[index % TILTS.length],
           )}
         >
-          {part.image ? <Image src={part.image} alt={part.imageAlt} fill sizes="9rem" className="object-cover" /> : null}
+          {part.image ? <Image src={part.image} alt={part.imageAlt} fill sizes="11rem" className="object-cover" /> : null}
         </li>
       ))}
     </ul>

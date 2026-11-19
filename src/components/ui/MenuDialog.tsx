@@ -144,7 +144,18 @@ export function MenuDialog({ item, onClosed }: MenuDialogProps) {
                   />
                 ) : item.contents.length > 0 ? (
                   <div className="bg-gingham absolute inset-0 grid place-items-center [--gingham-size:28px]">
-                    <BundlePhotos parts={item.contents} className="[--bundle-photo:min(24vw,8rem)]" />
+                    {/*
+                      Ukuran dibatasi panel foto (HP: selebar layar, rasio 4:3; desktop: ±23rem).
+                      Isi 3: susun segitiga (2 di atas, 1 di bawah) supaya bulatannya tetap besar.
+                    */}
+                    <BundlePhotos
+                      parts={item.contents}
+                      className={
+                        item.contents.length > 2
+                          ? "w-[calc(var(--bundle-photo)*1.8)] flex-wrap justify-center [--bundle-photo:min(36vw,10rem)] sm:[--bundle-photo:min(21vw,10rem)] [&>li:nth-child(3)]:-mt-[calc(var(--bundle-photo)*0.3)] [&>li:nth-child(3)]:ml-0"
+                          : "[--bundle-photo:min(40vw,11rem)] sm:[--bundle-photo:min(21vw,11rem)]"
+                      }
+                    />
                   </div>
                 ) : (
                   <EmptyImage name={item.name} />

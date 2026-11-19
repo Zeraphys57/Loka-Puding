@@ -1,8 +1,7 @@
 import type { CSSProperties } from "react";
 import { Container } from "@/components/ui/Container";
-import { Eyebrow } from "@/components/ui/Eyebrow";
-import { WhatsAppIcon } from "@/components/ui/Icons";
 import { MenuBrowser } from "@/components/ui/MenuBrowser";
+import { FlourSpill, Twine, WaterSpill, Whisk } from "@/components/ui/TableProps";
 import { siteConfig } from "@/config/site";
 import { dripMaskUrl } from "@/lib/drip";
 import { getMenuCategories, getMenuItems } from "@/lib/menu";
@@ -16,31 +15,28 @@ export function MenuCatalog() {
 
   return (
     <section id="menu" aria-labelledby="menu-title" className="relative z-10 bg-milk">
-      <div aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-50" />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-1/2 h-[28rem] w-full max-w-5xl -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-caramel-100),transparent)] opacity-70"
-      />
+      {/* Latar sama dengan Hero: butiran 70% + dua cahaya karamel lembut. Cahaya tidak menyentuh tepi atas, supaya sambungan dengan Kisah Kami tak terlihat (satu meja) */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden select-none">
+        <div className="bg-grain absolute inset-0 opacity-70" />
+        <div className="absolute top-[18%] -right-40 size-[40rem] rounded-full bg-[radial-gradient(closest-side,var(--color-caramel-100),transparent)]" />
+        <div className="absolute top-[45%] -left-64 size-[36rem] rounded-full bg-[radial-gradient(closest-side,var(--color-caramel-50),transparent)]" />
+      </div>
+      {/* Lanjutan tali kue dari Kisah Kami (posisi kanan & lebar harus sama dengan di About), air tumpah di samping judul, pengocok di atas tepung tumpah di samping kotak paket */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden overflow-hidden lg:block">
+        <Twine part="menu" className="top-0 right-[6%] h-[24rem] w-36" />
+        <WaterSpill className="top-44 left-[4%] w-52" />
+        <FlourSpill className="bottom-[21rem] -left-20 hidden w-80 xl:block" />
+        <Whisk className="bottom-[10rem] left-[3%] hidden w-28 -rotate-[28deg] xl:block" />
+      </div>
 
       <Container className="relative flex flex-col gap-16 overflow-x-clip pt-28 pb-28 sm:gap-24 sm:pt-36 sm:pb-36">
         <header className="mx-auto flex max-w-3xl flex-col items-center text-center" data-reveal>
-          <Eyebrow centered className="mb-6">
-            Katalog kami
-          </Eyebrow>
           <h2 id="menu-title" className="leading-[0.9] tracking-[-0.03em] text-espresso">
             <span className="text-[clamp(3rem,9vw,5.75rem)] font-black uppercase">Menu </span>
             <span className="font-wonky text-[clamp(3.4rem,10.5vw,6.5rem)] font-medium text-caramel-500 italic">
               Karamel
             </span>
           </h2>
-          <p className="mt-7 max-w-2xl text-lg leading-relaxed text-ink-muted sm:text-xl">
-            Puding sutra yang dibuat fresh setiap hari. Pilih favoritmu, buka detailnya, lalu tekan{" "}
-            <strong className="font-bold text-espresso">Pesan</strong>: WhatsApp langsung terbuka dengan pesananmu.
-          </p>
-          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-caramel-50 px-4 py-2 text-sm font-semibold text-caramel-700 ring-1 ring-caramel-200">
-            <WhatsAppIcon className="size-4" />
-            Tanpa daftar akun, cukup chat WhatsApp
-          </p>
         </header>
 
         <MenuBrowser items={items} categories={categories} instagram={siteConfig.social.instagram} />
