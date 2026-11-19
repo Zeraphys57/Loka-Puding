@@ -47,7 +47,7 @@ export function About() {
       </div>
       {/* Alat di meja (layar lebar): tali kue keluar dari bawah serbet & menyambung ke section Menu, pensil penulis resep di bawah serbet */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden lg:block">
-        <Twine part="kisah" className="right-[6%] bottom-0 h-[42%] w-36" />
+        <Twine className="right-[6%] bottom-0 h-[42%] w-36" />
         <Pencil className="bottom-24 left-24 hidden w-[22rem] -rotate-[9deg] xl:block" />
       </div>
 

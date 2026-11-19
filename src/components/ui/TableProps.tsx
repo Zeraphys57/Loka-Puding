@@ -11,7 +11,7 @@ const SHADOW = "drop-shadow-[0_6px_8px_color-mix(in_srgb,var(--color-espresso)_2
  * Tali kue biru-putih (baker's twine). Dua lapis garis: dasar putih + belang biru putus-putus = pilinan.
  * SVG-nya direntang mengikuti kotak pemanggil; `non-scaling-stroke` menjaga tebal & belang tetap.
  */
-function TwineStroke({ d }: { d: string }) {
+export function TwineStroke({ d }: { d: string }) {
   return (
     <>
       <path d={d} fill="none" stroke="#fff" strokeWidth={4.5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
@@ -28,10 +28,11 @@ function TwineStroke({ d }: { d: string }) {
 }
 
 /**
- * Bagian tali di Kisah Kami: muncul dari bawah serbet, berkelok turun, keluar tegak di tepi bawah section (x tengah).
- * Bagian berikutnya (`part="menu"`) mulai dari tepi atas section Menu di x yang sama, jadi terlihat menyambung.
+ * Tali di Kisah Kami: muncul dari bawah serbet, berkelok turun, keluar tegak di tepi bawah section (x tengah kotak).
+ * Lanjutannya di section Menu (`MenuTwine`) mulai dari tepi atas di x yang sama: 94% lebar section − 72px,
+ * jadi pemanggil wajib memakai `right-[6%] w-36`.
  */
-export function Twine({ part, className }: { part: "kisah" | "menu"; className?: string }) {
+export function Twine({ className }: { className?: string }) {
   return (
     <svg
       aria-hidden="true"
@@ -40,19 +41,7 @@ export function Twine({ part, className }: { part: "kisah" | "menu"; className?:
       preserveAspectRatio="none"
       className={cn("pointer-events-none absolute overflow-visible", SHADOW, className)}
     >
-      {part === "kisah" ? (
-        <TwineStroke d="M0 0C55 40 95 150 70 260S20 430 45 520 50 560 50 600" />
-      ) : (
-        <>
-          <TwineStroke d="M50 0C50 60 85 120 78 210S18 330 30 420 70 500 62 545C56 575 34 580 30 560" />
-          {/* Ujung tali yang terurai */}
-          <g className="stroke-caramel-500" strokeWidth={1.4} strokeLinecap="round" fill="none">
-            <path d="M30 560l-9 7" vectorEffect="non-scaling-stroke" />
-            <path d="M30 560l-3 11" vectorEffect="non-scaling-stroke" />
-            <path d="M30 560l-11 1" vectorEffect="non-scaling-stroke" />
-          </g>
-        </>
-      )}
+      <TwineStroke d="M0 0C55 40 95 150 70 260S20 430 45 520 50 560 50 600" />
     </svg>
   );
 }

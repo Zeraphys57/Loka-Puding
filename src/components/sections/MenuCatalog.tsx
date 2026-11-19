@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { Container } from "@/components/ui/Container";
 import { MenuBrowser } from "@/components/ui/MenuBrowser";
-import { FlourSpill, Twine, WaterSpill, Whisk } from "@/components/ui/TableProps";
+import { FlourSpill, WaterSpill, Whisk } from "@/components/ui/TableProps";
 import { siteConfig } from "@/config/site";
 import { dripMaskUrl } from "@/lib/drip";
 import { getMenuCategories, getMenuItems } from "@/lib/menu";
@@ -21,9 +21,8 @@ export function MenuCatalog() {
         <div className="absolute top-[18%] -right-40 size-[40rem] rounded-full bg-[radial-gradient(closest-side,var(--color-caramel-100),transparent)]" />
         <div className="absolute top-[45%] -left-64 size-[36rem] rounded-full bg-[radial-gradient(closest-side,var(--color-caramel-50),transparent)]" />
       </div>
-      {/* Lanjutan tali kue dari Kisah Kami (posisi kanan & lebar harus sama dengan di About), air tumpah di samping judul, pengocok di atas tepung tumpah di samping kotak paket */}
+      {/* Air tumpah di samping judul, pengocok di atas tepung tumpah di samping kotak paket */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden overflow-hidden lg:block">
-        <Twine part="menu" className="top-0 right-[6%] h-[24rem] w-36" />
         <WaterSpill className="top-44 left-[4%] w-52" />
         <FlourSpill className="bottom-[21rem] -left-20 hidden w-80 xl:block" />
         <Whisk className="bottom-[10rem] left-[3%] hidden w-28 -rotate-[28deg] xl:block" />
