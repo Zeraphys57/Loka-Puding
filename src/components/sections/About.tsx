@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { HandNote } from "@/components/ui/HandNote";
+import { HandNote, ScribbleArrow } from "@/components/ui/HandNote";
 import { ArrowDownIcon } from "@/components/ui/Icons";
 import { Pencil, Twine } from "@/components/ui/TableProps";
 import { cn } from "@/lib/cn";
@@ -97,20 +97,55 @@ export function About() {
                 className="absolute inset-y-0 left-1/2 hidden w-6 -translate-x-1/2 bg-caramel-100 lg:block"
               />
 
-              {/* Foto kedua turun lewat margin (bukan translate: animasi GSAP data-reveal menimpa translate) */}
-              <div className="flex items-start justify-center px-6 pt-10 pb-6 sm:px-10 lg:items-center lg:px-10 lg:py-14">
-                <Polaroid
-                  src="/images/about/kisah-tuang-karamel.jpg"
-                  alt="Tangan menuang saus karamel dari cangkir ke puding susu dalam cup bening"
+              {/*
+                Sketsa pensil langsung di halaman (dari foto asli), diagonal: satu dari kiri atas, satu dari kanan bawah,
+                bertemu di tengah. Desktop: kotak setinggi halaman (ikut baris grid); HP: kotak 4:5.
+                Posisi lewat top/left, bukan translate: animasi GSAP data-reveal menimpa translate.
+              */}
+              <div className="relative aspect-[4/5] w-full lg:aspect-auto">
+                <Sketch
+                  src="/images/about/sketsa-tuang-karamel.webp"
+                  alt="Sketsa pensil: tangan menuang saus karamel dari cangkir ke puding susu dalam cup bening"
                   caption="lumernya dari sini"
-                  className="w-[56%] max-w-[17rem] -rotate-3 lg:w-[60%] lg:max-w-none"
+                  className="absolute top-[4%] left-[3%] w-[60%] -rotate-3"
                 />
-                <Polaroid
-                  src="/images/about/kisah-tiga-varian.jpg"
-                  alt="Tiga puding karamel di piring putih dilihat dari atas: topping Regal, topping popcorn karamel, dan klasik"
+                <Sketch
+                  src="/images/about/sketsa-tiga-varian.webp"
+                  alt="Sketsa pensil: tiga puding karamel di piring dilihat dari atas, topping Regal, topping popcorn karamel, dan klasik"
                   caption="klasik, regal, popcorn"
-                  className="mt-[28%] -ml-[2%] w-[50%] sm:-ml-[10%] max-w-[13.5rem] rotate-[5deg] lg:mt-[30%] lg:w-[48%] lg:max-w-none"
+                  className="absolute right-[3%] bottom-[4%] w-[56%] rotate-[4deg]"
                 />
+                {/*
+                  Coretan langkah membuat di dua pojok yang kosong (dekorasi). Sengaja tanpa bahan & takaran, supaya tidak
+                  jadi klaim resep; hanya urutan puding dua lapis: puding susu → siram karamel → topping.
+                */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-[5%] right-[5%] rotate-[4deg] font-hand text-[0.95rem] leading-[1.1] text-caramel-700 sm:text-[1.3rem] lg:text-[1.45rem]"
+                >
+                  <p className="text-[1.15em] text-caramel-800">cara buat:</p>
+                  <ol>
+                    <li>1. masak puding susu</li>
+                    <li>2. tuang ke cup</li>
+                    <li>3. dinginkan</li>
+                    <li>4. siram karamel</li>
+                  </ol>
+                  <span className="mt-1 block pl-[15%] text-[1.25em]">
+                    <ScribbleArrow direction="down-left" />
+                  </span>
+                </div>
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-[8%] left-[5%] -rotate-3 font-hand text-[0.95rem] leading-[1.1] text-caramel-700 sm:text-[1.3rem] lg:text-[1.45rem]"
+                >
+                  <p className="flex items-end gap-1">
+                    5. tambah topping
+                    <span className="text-[1.25em]">
+                      <ScribbleArrow direction="up-right" />
+                    </span>
+                  </p>
+                  <p className="text-[1.15em] text-caramel-800">selesai! ♡</p>
+                </div>
               </div>
 
               <article
@@ -165,17 +200,19 @@ export function About() {
   );
 }
 
-/** Foto polaroid berselotip dengan keterangan tulisan tangan. Lebar & kemiringan diatur lewat `className`. */
-function Polaroid({ src, alt, caption, className }: { src: string; alt: string; caption: string; className?: string }) {
+/**
+ * Sketsa pensil (dibuat dari foto asli, pinggirnya memudar ke kertas) yang digambar langsung di halaman buku,
+ * dengan keterangan tulisan tangan. Lebar & kemiringan diatur lewat `className`.
+ */
+function Sketch({ src, alt, caption, className }: { src: string; alt: string; caption: string; className?: string }) {
   return (
-    <figure data-reveal="pop" className={cn("relative shrink-0 bg-white p-2 pb-10 shadow-pop sm:p-2.5 sm:pb-12", className)}>
-      <div className="relative aspect-[4/5] overflow-hidden bg-custard">
+    <figure data-reveal="pop" className={cn("shrink-0", className)}>
+      <div className="relative aspect-[4/5]">
         <Image src={src} alt={alt} fill sizes="(min-width: 1024px) 20rem, 45vw" className="object-cover" />
       </div>
-      <figcaption className="absolute inset-x-1 bottom-2.5 text-center font-hand text-[1rem] leading-none whitespace-nowrap text-ink sm:bottom-3 sm:text-[1.35rem]">
+      <figcaption className="-mt-2 text-center font-hand text-[1.05rem] leading-none whitespace-nowrap text-caramel-700 sm:text-[1.4rem]">
         {caption}
       </figcaption>
-      <span aria-hidden="true" className="absolute -top-3 left-1/2 h-6 w-20 -translate-x-1/2 -rotate-3 bg-caramel-200/75 shadow-sm" />
     </figure>
   );
 }

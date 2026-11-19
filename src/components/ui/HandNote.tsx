@@ -20,7 +20,7 @@ const FLIP: Record<ArrowDirection, string> = {
   "up-left": "-scale-100",
 };
 
-function ScribbleArrow({ direction }: { direction: ArrowDirection }) {
+export function ScribbleArrow({ direction }: { direction: ArrowDirection }) {
   return (
     <svg
       viewBox="0 0 64 56"
