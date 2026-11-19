@@ -61,7 +61,7 @@ Nilai warnanya ada di `src/app/globals.css` (blok `@theme` untuk karamel, blok `
 
 ## Mengubah menu → `src/data/menu.ts`
 
-Saat ini ada 3 menu: **Puding Karamel**, **Puding Karamel Topping Regal**, dan **Puding Karamel Topping Popcorn Karamel**. Setiap menu ditulis seperti ini:
+Saat ini ada 4 menu satuan: **Puding Karamel**, **Puding Karamel Topping Regal**, **Puding Karamel Topping Popcorn Karamel**, dan **Milk Tea**, plus 4 paket bundling. Setiap menu ditulis seperti ini:
 
 ```ts
 {
@@ -70,7 +70,7 @@ Saat ini ada 3 menu: **Puding Karamel**, **Puding Karamel Topping Regal**, dan *
   category: "puding-karamel",        // salah satu id di menuCategories
   description: "Puding susu lembut berlapis karamel dengan topping biskuit Regal renyah.",
   price: 13000,                      // tanpa titik: 13000 = Rp13.000
-  image: "/images/menu/puding-karamel-regal-v2.jpg", // opsional, lihat "Belum punya foto?"
+  image: "/images/menu/puding-karamel-regal-v5.jpg", // opsional, lihat "Belum punya foto?"
   imageAlt: "Puding karamel dengan biskuit Regal di atasnya", // opsional
   badge: "Best Seller",              // opsional: "Best Seller" atau "Baru"
   available: false,                  // opsional: isi false jika sedang habis
@@ -89,12 +89,12 @@ Paket ditulis seperti menu biasa, ditambah `contents`: daftar `id` menu yang ada
 
 ```ts
 {
-  id: "bundling-1",
-  name: "Bundling 1",
+  id: "sweet-pair",
+  name: "Sweet Pair",
   category: "bundling",
-  description: "Isi 2 puding: Puding Karamel klasik + Topping Regal.",
-  price: 21000,
-  contents: ["puding-karamel", "puding-karamel-regal"],
+  description: "1 Puding Karamel klasik + 1 Milk Tea.",
+  price: 22000,
+  contents: ["puding-karamel", "milk-tea"],
 },
 ```
 
@@ -108,7 +108,7 @@ Di bawah katalog ada satu baris ajakan follow Instagram, "menu baru menyusul". I
 
 ## Mengganti & menambah foto
 
-**Foto menu** ada di `public/images/menu/`. Saat ini: `puding-karamel-v2.jpg`, `puding-karamel-regal-v2.jpg`, `puding-karamel-popcorn-v2.jpg`.
+**Foto menu** ada di `public/images/menu/`. Saat ini (foto asli produk): `puding-karamel-v9.jpg`, `puding-karamel-regal-v5.jpg`, `puding-karamel-popcorn-v5.jpg`, `milk-tea-v6.jpg`. Foto paket tidak perlu dibuat: foto bulatnya diambil otomatis dari foto isi paket.
 
 1. Siapkan foto **persegi (1:1)**, idealnya **1024 × 1024 px**, format JPG atau WebP.
 2. Simpan ke `public/images/menu/` dengan nama huruf kecil tanpa spasi (mis. `puding-karamel-oreo.jpg`).
@@ -262,7 +262,7 @@ Cari `TODO` di proyek (di VS Code: `Ctrl + Shift + F`) lalu lengkapi:
 - [ ] Jam buka (`site.ts`)
 - [ ] Instagram, TikTok, link GoFood/GrabFood/ShopeeFood (`site.ts`)
 - [ ] Cek harga & deskripsi 3 menu karamel (`menu.ts`)
-- [ ] Isi & harga asli paket Bundling 1 dan 2 (`menu.ts`; sekarang masih contoh)
+- [x] Isi & harga paket bundling (`menu.ts`: Sweet Pair, Regal Pair, Popcorn Pair, Sweet Trio)
 - [ ] Cerita brand & keunggulan (`src/components/sections/About.tsx`)
 - [ ] Logo/ikon asli jika ada (`src/app/icon.svg`, `favicon.ico`, `apple-icon.png`)
 - [ ] Domain (`NEXT_PUBLIC_SITE_URL` di Vercel)

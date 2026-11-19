@@ -58,8 +58,9 @@ export function MenuBrowser({ items, categories, instagram }: MenuBrowserProps) 
       */}
       {singles.length > 0 ? (
         <div
-          className="flex w-full max-w-6xl flex-col gap-2 lg:grid lg:grid-rows-[auto_auto_auto] lg:[--step:5.5rem] xl:[--step:7.5rem]"
-          style={{ gridTemplateColumns: singles.map((_, i) => (i ? "var(--step) minmax(0,1fr)" : "minmax(0,1fr)")).join(" ") }}
+          className="flex w-full max-w-6xl flex-col gap-2 lg:grid lg:grid-rows-[auto_auto_auto] lg:justify-center lg:[--step:5.5rem] xl:[--step:6rem]"
+          // Lebar tiap menu dibatasi 18rem, supaya filter dengan 1 menu (mis. Minuman) tidak jadi foto raksasa
+          style={{ gridTemplateColumns: singles.map((_, i) => (i ? "var(--step) minmax(0,18rem)" : "minmax(0,18rem)")).join(" ") }}
         >
           <div
             aria-hidden="true"
@@ -80,7 +81,7 @@ export function MenuBrowser({ items, categories, instagram }: MenuBrowserProps) 
                   ) : null}
                 </div>
 
-                <div className="relative col-start-1 row-span-2 row-start-1 self-center lg:row-span-1 lg:row-start-2 lg:px-5">
+                <div className="relative col-start-1 row-span-2 row-start-1 self-center lg:row-span-1 lg:row-start-2">
                   {/* Di HP tiap puding punya alas taplak sendiri; di desktop alasnya taplak bersama */}
                   <div
                     aria-hidden="true"
@@ -105,10 +106,10 @@ export function MenuBrowser({ items, categories, instagram }: MenuBrowserProps) 
                   </div>
                 </div>
 
-                <div className="col-start-2 row-start-2 self-start pt-1 lg:col-start-1 lg:row-start-3 lg:flex lg:flex-col lg:items-center lg:self-stretch lg:px-3 lg:pt-12">
+                <div className="col-start-2 row-start-2 self-start pt-1 lg:col-start-1 lg:row-start-3 lg:flex lg:flex-col lg:items-center lg:self-stretch lg:pt-12">
                   <h3
                     id={`menu-${item.id}`}
-                    className="font-display text-xl leading-[1.1] font-bold tracking-[-0.01em] text-espresso sm:text-2xl xl:text-[1.75rem]"
+                    className="font-display text-xl leading-[1.1] font-bold tracking-[-0.01em] text-espresso sm:text-2xl"
                   >
                     {item.name}
                   </h3>
@@ -250,6 +251,9 @@ function PriceTag({ item, onOpen }: { item: MenuItemView; onOpen: OpenItem }) {
 
 /** Panah coretan tangan "+ topping" di antara dua puding. Desktop: ke kanan; HP: ke bawah. */
 function StepArrow({ topping, column }: { topping?: string; column: number }) {
+  // Menu tanpa topping (mis. Milk Tea) bukan "naik level" dari puding sebelumnya: cukup jarak, tanpa panah
+  if (!topping) return <div aria-hidden="true" style={{ gridColumn: column }} className="h-6 lg:row-start-2 lg:h-auto" />;
+
   return (
     <div
       aria-hidden="true"
@@ -269,11 +273,9 @@ function StepArrow({ topping, column }: { topping?: string; column: number }) {
         <path d="M4 14c10-8 20 6 32-1s22-6 36 0" />
         <path d="M63 6l9 7-10 6" />
       </svg>
-      {topping ? (
-        <span className="font-hand text-[1.35rem] leading-none text-caramel-700 lg:-rotate-6 lg:text-center lg:text-[1.5rem]">
-          + {topping}
-        </span>
-      ) : null}
+      <span className="font-hand text-[1.35rem] leading-none text-caramel-700 lg:-rotate-6 lg:text-center lg:text-[1.5rem]">
+        + {topping}
+      </span>
     </div>
   );
 }
